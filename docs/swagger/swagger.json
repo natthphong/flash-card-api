@@ -1,0 +1,1932 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "flash card",
+    "version": "1.0.0",
+    "description": ""
+  },
+  "servers": [
+    {
+      "url": "{{baseUrl}}"
+    }
+  ],
+  "paths": {
+    "/flash-card/api/v1/auth/register": {
+      "parameters": [],
+      "post": {
+        "summary": "/auth/register",
+        "parameters": [
+          {
+            "name": "requestId",
+            "in": "header",
+            "required": false,
+            "example": "{{$guid}}",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "headers": {
+              "Date": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "Mon, 12 May 2025 08:01:13 GMT"
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "application/json"
+              },
+              "Content-Length": {
+                "schema": {
+                  "type": "integer"
+                },
+                "example": "34"
+              }
+            },
+            "description": "success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "format": "color"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": {
+                    "type": "string"
+                  },
+                  "password": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/flash-card/api/v1/auth/login": {
+      "parameters": [],
+      "post": {
+        "summary": "/auth/login",
+        "parameters": [
+          {
+            "name": "requestId",
+            "in": "header",
+            "required": false,
+            "example": "{{$guid}}",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "headers": {
+              "Date": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "Mon, 12 May 2025 10:26:45 GMT"
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "application/json"
+              },
+              "Content-Length": {
+                "schema": {
+                  "type": "integer"
+                },
+                "example": "550"
+              }
+            },
+            "description": "success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "format": "color"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "body": {
+                      "type": "object",
+                      "properties": {
+                        "accessToken": {
+                          "type": "string"
+                        },
+                        "jwtBody": {
+                          "type": "object",
+                          "properties": {
+                            "email": {
+                              "type": "string",
+                              "format": "email"
+                            },
+                            "exp": {
+                              "type": "integer"
+                            },
+                            "id": {
+                              "type": "string",
+                              "format": "utc-millisec"
+                            },
+                            "name": {
+                              "type": "string"
+                            },
+                            "username": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "refreshToken": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": {
+                    "type": "string"
+                  },
+                  "password": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/flash-card/api/v1/auth/refreshToken": {
+      "parameters": [],
+      "post": {
+        "summary": "/auth/refreshToken",
+        "parameters": [
+          {
+            "name": "requestId",
+            "in": "header",
+            "required": false,
+            "example": "{{$guid}}",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "headers": {
+              "Date": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "Mon, 12 May 2025 08:25:57 GMT"
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "application/json"
+              },
+              "Content-Length": {
+                "schema": {
+                  "type": "integer"
+                },
+                "example": "550"
+              }
+            },
+            "description": "success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "format": "color"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "body": {
+                      "type": "object",
+                      "properties": {
+                        "accessToken": {
+                          "type": "string"
+                        },
+                        "jwtBody": {
+                          "type": "object",
+                          "properties": {
+                            "email": {
+                              "type": "string",
+                              "format": "email"
+                            },
+                            "exp": {
+                              "type": "integer"
+                            },
+                            "id": {
+                              "type": "string",
+                              "format": "utc-millisec"
+                            },
+                            "name": {
+                              "type": "string"
+                            },
+                            "username": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "refreshToken": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "refreshToken": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/flash-card/api/v1/me": {
+      "parameters": [],
+      "get": {
+        "summary": "/me",
+        "parameters": [
+          {
+            "name": "requestId",
+            "in": "header",
+            "required": false,
+            "example": "{{$guid}}",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "headers": {
+              "Date": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "Mon, 12 May 2025 08:38:34 GMT"
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "application/json"
+              },
+              "Content-Length": {
+                "schema": {
+                  "type": "integer"
+                },
+                "example": "133"
+              }
+            },
+            "description": "success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "format": "color"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "body": {
+                      "type": "object",
+                      "properties": {
+                        "jwtBody": {
+                          "type": "object",
+                          "properties": {
+                            "email": {
+                              "type": "string",
+                              "format": "email"
+                            },
+                            "id": {
+                              "type": "string",
+                              "format": "utc-millisec"
+                            },
+                            "name": {
+                              "type": "string"
+                            },
+                            "username": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/flash-card/api/v1/admin/user/confirm": {
+      "parameters": [],
+      "post": {
+        "summary": "/user/confirm",
+        "parameters": [
+          {
+            "name": "requestId",
+            "in": "header",
+            "required": false,
+            "example": "{{$guid}}",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-auth-token",
+            "in": "header",
+            "required": false,
+            "example": "V1ZkU2RHRlhOVlZpTW5Sc1lteGFiR051YkZSa1NFcDJZbTFrVldJeWRHeGlaejA5",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "headers": {
+              "Date": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "Mon, 12 May 2025 08:53:07 GMT"
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "application/json"
+              },
+              "Content-Length": {
+                "schema": {
+                  "type": "integer"
+                },
+                "example": "34"
+              }
+            },
+            "description": "success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "format": "color"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/flash-card/api/v1/flashcard-sets/create": {
+      "parameters": [],
+      "post": {
+        "summary": "/flashcard-sets/create",
+        "parameters": [
+          {
+            "name": "requestId",
+            "in": "header",
+            "required": false,
+            "example": "{{$guid}}",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-auth-token",
+            "in": "header",
+            "required": false,
+            "example": "V1ZkU2RHRlhOVlZpTW5Sc1lteGFiR051YkZSa1NFcDJZbTFrVldJeWRHeGlaejA5",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "headers": {
+              "Date": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "Mon, 12 May 2025 10:00:18 GMT"
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "application/json"
+              },
+              "Content-Length": {
+                "schema": {
+                  "type": "integer"
+                },
+                "example": "34"
+              }
+            },
+            "description": "success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "format": "color"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/flash-card/api/v1/flashcard-sets/import/csv": {
+      "parameters": [],
+      "post": {
+        "summary": "/flashcard-sets/import/csv",
+        "parameters": [
+          {
+            "name": "requestId",
+            "in": "header",
+            "required": false,
+            "example": "{{$guid}}",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-auth-token",
+            "in": "header",
+            "required": false,
+            "example": "V1ZkU2RHRlhOVlZpTW5Sc1lteGFiR051YkZSa1NFcDJZbTFrVldJeWRHeGlaejA5",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "headers": {
+              "Date": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "Mon, 12 May 2025 10:00:18 GMT"
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "application/json"
+              },
+              "Content-Length": {
+                "schema": {
+                  "type": "integer"
+                },
+                "example": "34"
+              }
+            },
+            "description": "success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "format": "color"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "isPublic": {
+                    "type": "string"
+                  },
+                  "commandRec": {
+                    "type": "string"
+                  },
+                  "file": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/flash-card/api/v1/flashcard-sets/update": {
+      "parameters": [],
+      "put": {
+        "summary": "/flashcard-sets/update",
+        "parameters": [
+          {
+            "name": "requestId",
+            "in": "header",
+            "required": false,
+            "example": "{{$guid}}",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-auth-token",
+            "in": "header",
+            "required": false,
+            "example": "V1ZkU2RHRlhOVlZpTW5Sc1lteGFiR051YkZSa1NFcDJZbTFrVldJeWRHeGlaejA5",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "headers": {
+              "Date": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "Mon, 12 May 2025 10:27:04 GMT"
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "application/json"
+              },
+              "Content-Length": {
+                "schema": {
+                  "type": "integer"
+                },
+                "example": "34"
+              }
+            },
+            "description": "success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "format": "color"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "utc-millisec"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "isPublic": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/flash-card/api/v1/flashcard-sets/delete": {
+      "parameters": [],
+      "post": {
+        "summary": "/flashcard-sets/delete",
+        "parameters": [
+          {
+            "name": "requestId",
+            "in": "header",
+            "required": false,
+            "example": "{{$guid}}",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-auth-token",
+            "in": "header",
+            "required": false,
+            "example": "V1ZkU2RHRlhOVlZpTW5Sc1lteGFiR051YkZSa1NFcDJZbTFrVldJeWRHeGlaejA5",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "headers": {
+              "Date": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "Mon, 12 May 2025 10:27:31 GMT"
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "application/json"
+              },
+              "Content-Length": {
+                "schema": {
+                  "type": "integer"
+                },
+                "example": "34"
+              }
+            },
+            "description": "success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "format": "color"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "utc-millisec"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/flash-card/api/v1/flashcard-sets/list": {
+      "parameters": [],
+      "post": {
+        "summary": "/flashcard-sets/list",
+        "parameters": [
+          {
+            "name": "requestId",
+            "in": "header",
+            "required": false,
+            "example": "{{$guid}}",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-auth-token",
+            "in": "header",
+            "required": false,
+            "example": "V1ZkU2RHRlhOVlZpTW5Sc1lteGFiR051YkZSa1NFcDJZbTFrVldJeWRHeGlaejA5",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "headers": {
+              "Date": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "Mon, 12 May 2025 12:59:27 GMT"
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "application/json"
+              },
+              "Content-Length": {
+                "schema": {
+                  "type": "integer"
+                },
+                "example": "321"
+              }
+            },
+            "description": "success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "format": "color"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "body": {
+                      "type": "object",
+                      "properties": {
+                        "content": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "title": {
+                                "type": "string"
+                              },
+                              "description": {
+                                "type": "string"
+                              },
+                              "isPublic": {
+                                "type": "string"
+                              },
+                              "ownerId": {
+                                "type": "integer"
+                              },
+                              "ownerName": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        },
+                        "totalPage": {
+                          "type": "string",
+                          "format": "utc-millisec"
+                        },
+                        "totalElements": {
+                          "type": "string",
+                          "format": "utc-millisec"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "page": {
+                    "type": "string",
+                    "format": "utc-millisec"
+                  },
+                  "size": {
+                    "type": "string",
+                    "format": "utc-millisec"
+                  },
+                  "isMine": {
+                    "type": "string"
+                  },
+                  "isPublic": {
+                    "type": "string"
+                  },
+                  "searchBy": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/flash-card/api/v1/flashcard-sets/4": {
+      "parameters": [],
+      "get": {
+        "summary": "/flashcard-sets/{setId}",
+        "parameters": [
+          {
+            "name": "requestId",
+            "in": "header",
+            "required": false,
+            "example": "{{$guid}}",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-auth-token",
+            "in": "header",
+            "required": false,
+            "example": "V1ZkU2RHRlhOVlZpTW5Sc1lteGFiR051YkZSa1NFcDJZbTFrVldJeWRHeGlaejA5",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "headers": {
+              "Date": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "Mon, 12 May 2025 13:26:56 GMT"
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "application/json"
+              },
+              "Content-Length": {
+                "schema": {
+                  "type": "integer"
+                },
+                "example": "774"
+              }
+            },
+            "description": "suucess",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "format": "color"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "body": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "utc-millisec"
+                          },
+                          "front": {
+                            "type": "string"
+                          },
+                          "back": {
+                            "type": "string"
+                          },
+                          "choices": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "status": {
+                            "type": "string"
+                          },
+                          "createAt": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "ownerName": {
+                            "type": "string"
+                          },
+                          "seq": {
+                            "type": "string",
+                            "format": "utc-millisec"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/flash-card/api/v1/flashcards/create": {
+      "parameters": [],
+      "post": {
+        "summary": "/flashcards/create",
+        "parameters": [
+          {
+            "name": "requestId",
+            "in": "header",
+            "required": false,
+            "example": "{{$guid}}",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-auth-token",
+            "in": "header",
+            "required": false,
+            "example": "V1ZkU2RHRlhOVlZpTW5Sc1lteGFiR051YkZSa1NFcDJZbTFrVldJeWRHeGlaejA5",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "headers": {
+              "Date": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "Mon, 12 May 2025 10:00:18 GMT"
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "application/json"
+              },
+              "Content-Length": {
+                "schema": {
+                  "type": "integer"
+                },
+                "example": "34"
+              }
+            },
+            "description": "success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "format": "color"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/flash-card/api/v1/flashcards/update": {
+      "parameters": [],
+      "put": {
+        "summary": "/flashcards/update",
+        "parameters": [
+          {
+            "name": "requestId",
+            "in": "header",
+            "required": false,
+            "example": "{{$guid}}",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-auth-token",
+            "in": "header",
+            "required": false,
+            "example": "V1ZkU2RHRlhOVlZpTW5Sc1lteGFiR051YkZSa1NFcDJZbTFrVldJeWRHeGlaejA5",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "headers": {
+              "Date": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "Mon, 12 May 2025 10:27:04 GMT"
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "application/json"
+              },
+              "Content-Length": {
+                "schema": {
+                  "type": "integer"
+                },
+                "example": "34"
+              }
+            },
+            "description": "success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "format": "color"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/flash-card/api/v1/flashcards/delete": {
+      "parameters": [],
+      "post": {
+        "summary": "/flashcards/delete",
+        "parameters": [
+          {
+            "name": "requestId",
+            "in": "header",
+            "required": false,
+            "example": "{{$guid}}",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-auth-token",
+            "in": "header",
+            "required": false,
+            "example": "V1ZkU2RHRlhOVlZpTW5Sc1lteGFiR051YkZSa1NFcDJZbTFrVldJeWRHeGlaejA5",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "headers": {
+              "Date": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "Mon, 12 May 2025 10:27:04 GMT"
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "application/json"
+              },
+              "Content-Length": {
+                "schema": {
+                  "type": "integer"
+                },
+                "example": "34"
+              }
+            },
+            "description": "success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "format": "color"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "utc-millisec"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/flash-card/api/v1/daily-plans/setting": {
+      "parameters": [],
+      "post": {
+        "summary": "/daily-plans/setting",
+        "parameters": [
+          {
+            "name": "requestId",
+            "in": "header",
+            "required": false,
+            "example": "{{$guid}}",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-auth-token",
+            "in": "header",
+            "required": false,
+            "example": "V1ZkU2RHRlhOVlZpTW5Sc1lteGFiR051YkZSa1NFcDJZbTFrVldJeWRHeGlaejA5",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "headers": {
+              "Date": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "Mon, 12 May 2025 10:00:18 GMT"
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "application/json"
+              },
+              "Content-Length": {
+                "schema": {
+                  "type": "integer"
+                },
+                "example": "34"
+              }
+            },
+            "description": "success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "format": "color"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "dailyActive": {
+                    "type": "string"
+                  },
+                  "dailyTarget": {
+                    "type": "string",
+                    "format": "utc-millisec"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/flash-card/api/v1/daily-plans/inquiry": {
+      "parameters": [],
+      "get": {
+        "summary": "/daily-plans/inquiry",
+        "parameters": [
+          {
+            "name": "requestId",
+            "in": "header",
+            "required": false,
+            "example": "{{$guid}}",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-auth-token",
+            "in": "header",
+            "required": false,
+            "example": "V1ZkU2RHRlhOVlZpTW5Sc1lteGFiR051YkZSa1NFcDJZbTFrVldJeWRHeGlaejA5",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "headers": {
+              "Date": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "Sun, 18 May 2025 07:12:58 GMT"
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "application/json"
+              },
+              "Content-Length": {
+                "schema": {
+                  "type": "integer"
+                },
+                "example": "5521"
+              }
+            },
+            "description": "success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "format": "color"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "body": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "color"
+                          },
+                          "front": {
+                            "type": "string"
+                          },
+                          "back": {
+                            "type": "string"
+                          },
+                          "choices": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "status": {
+                            "type": "string"
+                          },
+                          "createAt": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "ownerName": {
+                            "type": "string"
+                          },
+                          "seq": {
+                            "type": "string",
+                            "format": "utc-millisec"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/flash-card/api/v1/job/daily-plans/generate": {
+      "parameters": [],
+      "post": {
+        "summary": "/daily-plans/generate",
+        "parameters": [
+          {
+            "name": "requestId",
+            "in": "header",
+            "required": false,
+            "example": "{{$guid}}",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-auth-token",
+            "in": "header",
+            "required": false,
+            "example": "V1ZkU2RHRlhOVlZpTW5Sc1lteGFiR051YkZSa1NFcDJZbTFrVldJeWRHeGlaejA5",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "headers": {
+              "Date": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "Mon, 12 May 2025 10:00:18 GMT"
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "application/json"
+              },
+              "Content-Length": {
+                "schema": {
+                  "type": "integer"
+                },
+                "example": "34"
+              }
+            },
+            "description": "success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "format": "color"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/flash-card/api/v1/exam-sessions/start": {
+      "parameters": [],
+      "post": {
+        "summary": "/exam-sessions/start",
+        "parameters": [
+          {
+            "name": "requestId",
+            "in": "header",
+            "required": false,
+            "example": "{{$guid}}",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-auth-token",
+            "in": "header",
+            "required": false,
+            "example": "V1ZkU2RHRlhOVlZpTW5Sc1lteGFiR051YkZSa1NFcDJZbTFrVldJeWRHeGlaejA5",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "headers": {
+              "Date": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "Sun, 18 May 2025 09:12:58 GMT"
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "application/json"
+              },
+              "Content-Length": {
+                "schema": {
+                  "type": "integer"
+                },
+                "example": "6840"
+              }
+            },
+            "description": "success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "format": "color"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "body": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "utc-millisec"
+                        },
+                        "questions": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "format": "color"
+                              },
+                              "front": {
+                                "type": "string"
+                              },
+                              "back": {
+                                "type": "string"
+                              },
+                              "choices": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              },
+                              "status": {
+                                "type": "string"
+                              },
+                              "createAt": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "ownerName": {
+                                "type": "string"
+                              },
+                              "seq": {
+                                "type": "string",
+                                "format": "utc-millisec"
+                              }
+                            }
+                          }
+                        },
+                        "isSubmitted": {
+                          "type": "string"
+                        },
+                        "expireAt": {
+                          "nullable": true
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "setId": {
+                    "type": "string",
+                    "format": "utc-millisec"
+                  },
+                  "examTotalQuestion": {
+                    "type": "string",
+                    "format": "utc-millisec"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/flash-card/api/v1/exam-sessions/2": {
+      "parameters": [],
+      "get": {
+        "summary": "/exam-sessions/:examId",
+        "parameters": [
+          {
+            "name": "requestId",
+            "in": "header",
+            "required": false,
+            "example": "{{$guid}}",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-auth-token",
+            "in": "header",
+            "required": false,
+            "example": "V1ZkU2RHRlhOVlZpTW5Sc1lteGFiR051YkZSa1NFcDJZbTFrVldJeWRHeGlaejA5",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "headers": {
+              "Date": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "Sun, 18 May 2025 09:32:30 GMT"
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "application/json"
+              },
+              "Content-Length": {
+                "schema": {
+                  "type": "integer"
+                },
+                "example": "6911"
+              }
+            },
+            "description": "success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "format": "color"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "body": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "utc-millisec"
+                        },
+                        "questions": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "format": "color"
+                              },
+                              "front": {
+                                "type": "string"
+                              },
+                              "back": {
+                                "type": "string"
+                              },
+                              "choices": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              },
+                              "status": {
+                                "type": "string"
+                              },
+                              "createAt": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "ownerName": {
+                                "type": "string"
+                              },
+                              "seq": {
+                                "type": "string",
+                                "format": "utc-millisec"
+                              }
+                            }
+                          }
+                        },
+                        "isSubmitted": {
+                          "type": "string"
+                        },
+                        "score": {
+                          "nullable": true
+                        },
+                        "ownerId": {
+                          "type": "integer"
+                        },
+                        "ownerName": {
+                          "type": "string"
+                        },
+                        "totalQuestions": {
+                          "type": "integer"
+                        },
+                        "expireAt": {
+                          "nullable": true
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/flash-card/api/v1/exam-sessions/update": {
+      "parameters": [],
+      "put": {
+        "summary": "/exam-sessions/update",
+        "parameters": [
+          {
+            "name": "requestId",
+            "in": "header",
+            "required": false,
+            "example": "{{$guid}}",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-auth-token",
+            "in": "header",
+            "required": false,
+            "example": "V1ZkU2RHRlhOVlZpTW5Sc1lteGFiR051YkZSa1NFcDJZbTFrVldJeWRHeGlaejA5",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "headers": {
+              "Date": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "Sun, 18 May 2025 13:44:46 GMT"
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "application/json"
+              },
+              "Content-Length": {
+                "schema": {
+                  "type": "integer"
+                },
+                "example": "34"
+              }
+            },
+            "description": "success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "format": "color"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "utc-millisec"
+                  },
+                  "answers": {
+                    "type": "object",
+                    "properties": {
+                      "currentId": {
+                        "type": "string",
+                        "format": "color"
+                      },
+                      "answerList": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "cardId": {
+                              "type": "string",
+                              "format": "color"
+                            },
+                            "seq": {
+                              "type": "string",
+                              "format": "utc-millisec"
+                            },
+                            "answer": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
