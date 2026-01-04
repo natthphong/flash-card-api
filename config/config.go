@@ -10,24 +10,23 @@ import (
 )
 
 type Config struct {
-	Env           string
-	JwtAuthConfig JwtAuthConfig
-	Server        Server
-	LogConfig     LogConfig
-	DBConfig      DBConfig
-	HTTP          HTTP
-	RedisConfig   RedisConfig
-	EmailConfig   EmailConfig
+	AppCode           string
+	CompanyCode       string
+	Env               string
+	JwtAuthConfig     JwtAuthConfig
+	Server            Server
+	LogConfig         LogConfig
+	DBConfig          DBConfig
+	HTTP              HTTP
+	RedisConfig       RedisConfig
+	HomeProxyAdapter  AdapterConfig
+	HomeServerAdapter AdapterConfig
 }
 
 type JwtAuthConfig struct {
 	JwtSecret            string
 	AccessTokenDuration  time.Duration
 	RefreshTokenDuration time.Duration
-}
-
-type EmailConfig struct {
-	Url string
 }
 
 type RedisConfig struct {
@@ -71,6 +70,11 @@ type HTTP struct {
 	MaxIdleConn        int
 	MaxIdleConnPerHost int
 	MaxConnPerHost     int
+}
+
+type AdapterConfig struct {
+	BaseURL string
+	Timeout time.Duration
 }
 
 func InitConfig() (*Config, error) {

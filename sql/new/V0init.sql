@@ -4,7 +4,7 @@
 CREATE TABLE tbl_flashcard_sets
 (
     id          serial PRIMARY KEY,
-    owner_id    int ,
+    owner_user_token VARCHAR(36) ,
     title       varchar(255),
     description text,
     is_public   varchar(1) DEFAULT 'N',
@@ -35,7 +35,7 @@ CREATE TABLE tbl_flashcards
 CREATE TABLE tbl_study_classes
 (
     id          serial PRIMARY KEY,
-    owner_id    int,
+    owner_user_token VARCHAR(36),
     name        varchar(255),
     is_private  varchar(1) DEFAULT 'Y',
     invite_code varchar(255),
@@ -61,9 +61,9 @@ CREATE TABLE tbl_study_class_sets
 CREATE TABLE tbl_study_class_members
 (
     class_id int REFERENCES tbl_study_classes (id) ON DELETE CASCADE,
-    user_id  int,
+    user_id_token VARCHAR(36),
     role     varchar(50) DEFAULT 'student',
-    PRIMARY KEY (class_id, user_id)
+    PRIMARY KEY (class_id, user_id_token)
 );
 
 
@@ -121,8 +121,8 @@ CREATE TABLE tbl_exam_sessions
 
 
 -- Foreign-key lookup indexes
-CREATE INDEX idx_tbl_flashcard_sets_owner_id
-    ON tbl_flashcard_sets (owner_id);
+CREATE INDEX idx_tbl_flashcard_sets_owner_user_token
+    ON tbl_flashcard_sets (owner_user_token);
 
 CREATE INDEX idx_tbl_flashcards_set_id
     ON tbl_flashcards (set_id);
@@ -133,8 +133,8 @@ CREATE INDEX idx_tbl_study_class_sets_class_id
 CREATE INDEX idx_tbl_study_class_sets_set_id
     ON tbl_study_class_sets (set_id);
 
-CREATE INDEX idx_tbl_study_class_members_user_id
-    ON tbl_study_class_members (user_id);
+CREATE INDEX idx_tbl_study_class_members_user_id_token
+    ON tbl_study_class_members (user_id_token);
 
 
 

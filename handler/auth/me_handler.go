@@ -1,10 +1,11 @@
 package auth
 
 import (
+	"strings"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v4"
 	"gitlab.com/home-server7795544/home-server/flash-card/flash-card-api/api"
-	"strings"
 )
 
 func MeHandler(jwtSecret string) fiber.Handler {
@@ -28,10 +29,10 @@ func MeHandler(jwtSecret string) fiber.Handler {
 			return api.Unauthorized(c)
 		}
 		userDetails := fiber.Map{
-			"id":       claims["id"],
-			"name":     claims["name"],
-			"username": claims["username"],
-			"email":    claims["email"],
+			"userId": claims["userId"],
+			"name":   claims["name"],
+			//"username": claims["username"],
+			"email": claims["email"],
 		}
 		response := map[string]interface{}{
 			"jwtBody": userDetails,

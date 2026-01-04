@@ -3,15 +3,15 @@ package auth
 import "github.com/pkg/errors"
 
 type RegisterRequest struct {
-	Username string `json:"username"`
+	userId   string `json:"userId"`
 	Password string `json:"password"`
 	Name     string `json:"name"`
 	Email    string `json:"email"`
 }
 
 func (r RegisterRequest) Validate() error {
-	if r.Username == "" {
-		return errors.New("username is required")
+	if r.userId == "" {
+		return errors.New("userId is required")
 	}
 	if r.Password == "" {
 		return errors.New("password is required")
@@ -26,13 +26,19 @@ func (r RegisterRequest) Validate() error {
 }
 
 type LoginRequest struct {
-	Username string `json:"username"`
+	UserId   string `json:"userId"`
 	Password string `json:"password"`
+}
+type LoginRequestToHomeServer struct {
+	UserId      string `json:"userId"`
+	Password    string `json:"password"`
+	AppCode     string `json:"appCode"`
+	CompanyCode string `json:"companyCode"`
 }
 
 func (r LoginRequest) Validate() error {
-	if r.Username == "" {
-		return errors.New("username is required")
+	if r.UserId == "" {
+		return errors.New("userId is required")
 	}
 	if r.Password == "" {
 		return errors.New("password is required")
@@ -47,7 +53,7 @@ type RefreshTokenRequest struct {
 // UserDtoModel dto
 type UserDtoModel struct {
 	Id       string `json:"id"`
-	Username string `json:"username"`
+	userId   string `json:"userId"`
 	Password string `json:"password"`
 	Name     string `json:"name"`
 	Email    string `json:"email"`

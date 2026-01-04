@@ -66,6 +66,10 @@ func Ok(c *fiber.Ctx, body interface{}) error {
 	return c.Status(fiber.StatusOK).JSON(SuccessResponse(body))
 }
 
+func OkFromResponse(c *fiber.Ctx, body interface{}) error {
+	return c.Status(fiber.StatusOK).JSON(body)
+}
+
 func BadRequest(c *fiber.Ctx, message string) error {
 	msg := fiber.ErrBadRequest.Message
 	if message != "" {

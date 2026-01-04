@@ -2,13 +2,17 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
+	"strconv"
+	"time"
+
 	_ "github.com/go-redis/redis/v9"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/google/uuid"
+	"gitlab.com/home-server7795544/home-server/flash-card/flash-card-api/adapter"
 	"gitlab.com/home-server7795544/home-server/flash-card/flash-card-api/api"
 	"gitlab.com/home-server7795544/home-server/flash-card/flash-card-api/config"
 	"gitlab.com/home-server7795544/home-server/flash-card/flash-card-api/handler/admin"
@@ -23,9 +27,6 @@ import (
 	"gitlab.com/home-server7795544/home-server/flash-card/flash-card-api/internal/logz"
 	"gitlab.com/home-server7795544/home-server/flash-card/flash-card-api/middleware"
 	"go.uber.org/zap"
-	"log"
-	"strconv"
-	"time"
 )
 
 func main() {
@@ -49,9 +50,14 @@ func main() {
 	defer cancel()
 	logger := zap.L()
 	logger.Info("version " + strconv.FormatInt(versionDeploy, 10))
-	jsonCfg, err := json.Marshal(cfg)
-	_ = jsonCfg
-	logger.Debug("after cfg : " + string(jsonCfg))
+	//jsonCfg, err := json.Marshal(cfg)
+	//_ = jsonCfg
+	//logger.Debug("after cfg : " + string(jsonCfg))
+	homeProxyAdapter, _ := adapter.NewAdapter(cfg.HomeProxyAdapter)
+	_ = homeProxyAdapter
+
+	homeServerAdapter, _ := adapter.NewAdapter(cfg.HomeServerAdapter)
+	_ = homeServerAdapter
 	dbPool, err := db.Open(ctx, cfg.DBConfig)
 	if err != nil {
 		logger.Fatal("server connect to db", zap.Error(err))
@@ -87,7 +93,7 @@ func main() {
 	})
 
 	// auth
-	auth.GetRouter(group, *cfg, &redisCMD, dbPool, httputil.NewHttpPostCall(httpClient))
+	auth.GetRouter(group, *cfg, *homeServerAdapter)
 
 	//admin
 	admin.GetRouter(group, *cfg, &redisCMD, dbPool, httputil.NewHttpPostCall(httpClient))
