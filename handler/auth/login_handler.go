@@ -14,6 +14,7 @@ import (
 
 const LoginApiPath = "/v1/auth/login"
 
+// TODO
 func LoginHandler(
 	homeProxyAdapter adapter.Adapter,
 	cfg *config.Config,
