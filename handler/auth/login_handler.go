@@ -5,6 +5,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"gitlab.com/home-server7795544/home-server/flash-card/flash-card-api/adapter"
 	"gitlab.com/home-server7795544/home-server/flash-card/flash-card-api/api"
 	"gitlab.com/home-server7795544/home-server/flash-card/flash-card-api/config"
@@ -18,6 +19,7 @@ const LoginApiPath = "/v1/auth/login"
 func LoginHandler(
 	homeProxyAdapter adapter.Adapter,
 	cfg *config.Config,
+	dbpool *pgxpool.Pool,
 ) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var req LoginRequest
@@ -60,9 +62,18 @@ func LoginHandler(
 		if !ok || tokenStr == "" {
 			return api.BadRequest(c, "invalid userIdToken")
 		}
-		delete(respMap, "userIdToken")
+		//delete(respMap, "userIdToken")
 		logger.Info("response grom home server", zap.String("tokenStr", tokenStr))
-		// TODO  insert and merge to table
+		sql := `
+			insert into tbl_user_config (user_id_token, status, daily_active, daily_target)
+			values ($1,'ACTIVE','N',20)
+			on conflict(user_id_token) do nothing ;
+			`
+		_, err = dbpool.Exec(ctx, sql, tokenStr)
+		if err != nil {
+			logger.Warn("failed to insert into tbl_user_config", zap.Error(err))
+			return api.InternalError(c, "DATABASE error")
+		}
 		return api.OkFromResponse(c, respMap)
 	}
 }

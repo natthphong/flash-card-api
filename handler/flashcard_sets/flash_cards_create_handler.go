@@ -26,8 +26,8 @@ func NewFlashCardCreateHandler(
 			logger.Error(err.Error(), zap.String("requestId", requestId))
 			return api.BadRequest(c, err.Error())
 		}
-		username := c.Locals("username").(string)
-		req.Username = username
+		userId := c.Locals("userId").(string)
+		req.UserId = userId
 		err := insertFlashCardsFunc(ctx, logger, req)
 		if err != nil {
 			logger.Error(err.Error(), zap.String("requestId", requestId))

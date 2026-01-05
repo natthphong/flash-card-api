@@ -15,12 +15,12 @@ type InsertFlashCards struct {
 }
 
 type FlashCardSetsCreateRequest struct {
-	Title       string              `json:"title"`
-	Description string              `json:"description"`
-	IsPublic    string              `json:"isPublic"`
-	FlashCards  *[]InsertFlashCards `json:"flashCards,omitempty"`
-	OwnerId     int
-	Username    string
+	Title        string              `json:"title"`
+	Description  string              `json:"description"`
+	IsPublic     string              `json:"isPublic"`
+	FlashCards   *[]InsertFlashCards `json:"flashCards,omitempty"`
+	OwnerIdToken string
+	UserId       string
 }
 
 func (r *FlashCardSetsCreateRequest) Validate() error {
@@ -57,9 +57,9 @@ func (b *ResetFlashCardStatusRequest) Validate() error {
 }
 
 type DuplicateFlashCardsSetRequest struct {
-	OldSetID decimal.Decimal `json:"setId"`
-	OwnerID  int
-	Username string
+	OldSetID     decimal.Decimal `json:"setId"`
+	OwnerIdToken string
+	UserId       string
 }
 
 func (r DuplicateFlashCardsSetRequest) Validate() error {
@@ -70,9 +70,9 @@ func (r DuplicateFlashCardsSetRequest) Validate() error {
 }
 
 type FlashCardSetsTrackerUpsert struct {
-	SetID   decimal.Decimal `json:"setId"`
-	CardID  decimal.Decimal `json:"cardId"`
-	OwnerID int
+	SetID        decimal.Decimal `json:"setId"`
+	CardID       decimal.Decimal `json:"cardId"`
+	OwnerIDToken string
 }
 
 func (r FlashCardSetsTrackerUpsert) Validate() error {
@@ -90,7 +90,7 @@ type FlashCardSetsUpdateRequest struct {
 	Title       string          `json:"title"`
 	Description string          `json:"description"`
 	IsPublic    string          `json:"isPublic"`
-	Username    string
+	UserId      string
 }
 
 // Validate ensures we have the minimum required data to run an UPDATE.
@@ -102,8 +102,8 @@ func (r FlashCardSetsUpdateRequest) Validate() error {
 }
 
 type FlashCardSetsDeleteRequest struct {
-	Id       decimal.Decimal `json:"id"`
-	Username string
+	Id     decimal.Decimal `json:"id"`
+	UserId string
 }
 
 func (r FlashCardSetsDeleteRequest) Validate() error {
@@ -135,13 +135,13 @@ func (r FlashCardSetsListRequest) Validate() error {
 }
 
 type FlashCardSetsListResponseDetails struct {
-	SetId       decimal.Decimal `json:"setId"`
-	Title       string          `json:"title"`
-	Description string          `json:"description"`
-	IsPublic    string          `json:"isPublic"`
-	OwnerId     int             `json:"ownerId"`
-	OwnerName   string          `json:"ownerName"`
-	Term        decimal.Decimal `json:"term"`
+	SetId        decimal.Decimal `json:"setId"`
+	Title        string          `json:"title"`
+	Description  string          `json:"description"`
+	IsPublic     string          `json:"isPublic"`
+	OwnerTokenId string          `json:"ownerTokenId"`
+	OwnerName    string          `json:"ownerName"`
+	Term         decimal.Decimal `json:"term"`
 }
 type FlashCardSetsListResponse struct {
 	Content       []FlashCardSetsListResponseDetails `json:"content"`
@@ -163,14 +163,14 @@ type FlashCardSetsInquiryResponse struct {
 
 // TODO can import with update setId a
 type FlashCardsSetsCsvImportRequest struct {
-	SetId       decimal.Decimal `json:"setId"`
-	CommandRec  string          `json:"commandRec"`
-	Title       string          `json:"title"`
-	Description string          `json:"description"`
-	IsPublic    string          `json:"isPublic"`
-	File        string          `json:"file"` // base64‑encoded CSV
-	OwnerId     int             `json:"-"`
-	Username    string          `json:"-"`
+	SetId        decimal.Decimal `json:"setId"`
+	CommandRec   string          `json:"commandRec"`
+	Title        string          `json:"title"`
+	Description  string          `json:"description"`
+	IsPublic     string          `json:"isPublic"`
+	File         string          `json:"file"` // base64‑encoded CSV
+	OwnerIdToken string          `json:"-"`
+	UserId       string          `json:"-"`
 }
 
 func (r FlashCardsSetsCsvImportRequest) Validate() error {

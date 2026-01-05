@@ -27,7 +27,7 @@ func NewUpdateHandler(
 			return api.BadRequest(c, err.Error())
 		}
 
-		req.Username = c.Locals("username").(string)
+		req.UserId = c.Locals("userId").(string)
 
 		if err := updateFlashCardSetsFunc(ctx, logger, req); err != nil {
 			logger.Error("update failed", zap.String("requestId", requestId), zap.Error(err))

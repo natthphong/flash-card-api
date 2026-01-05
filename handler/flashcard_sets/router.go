@@ -15,6 +15,7 @@ func GetRouter(group fiber.Router,
 	postFunc httputil.HTTPPostRequestFunc,
 ) {
 	flashCardSetsGroup := group.Group("/flashcard-sets")
+
 	flashCardSetsGroup.Post("/create", NewCreateHandler(
 		NewInsertFlashCardsSet(dbPool),
 	))
@@ -25,13 +26,13 @@ func GetRouter(group fiber.Router,
 	flashCardSetsGroup.Put("/update", NewUpdateHandler(
 		NewUpdateFlashCardSets(dbPool),
 	))
-
 	flashCardSetsGroup.Post("/delete", NewDeleteHandler(
 		NewDeleteFlashCardSets(dbPool),
 	))
 	flashCardSetsGroup.Post("/list", NewListHandler(
 		NewListFlashCardSets(dbPool),
 	))
+
 	flashCardSetsGroup.Post("/duplicate", NewDuplicateFlashCardsSetHandler(
 		NewDuplicateFlashCardsSet(dbPool),
 	))

@@ -27,14 +27,8 @@ func NewInquiryFlashCardSetsHandler(
 			return api.InternalError(c, api.SomeThingWentWrong)
 		}
 
-		userIdStr := c.Locals("userId").(string)
-		userId, err := strconv.Atoi(userIdStr)
-		if err != nil {
-			logger.Error(err.Error(), zap.String("requestId", requestId))
-			return api.InternalError(c, api.SomeThingWentWrong)
-		}
-
-		res, err := inquiryFlashCardSetsFunc(ctx, logger, id, userId)
+		userIdStr := c.Locals("userIdToken").(string)
+		res, err := inquiryFlashCardSetsFunc(ctx, logger, id, userIdStr)
 		if err != nil {
 			return api.InternalError(c, api.SomeThingWentWrong)
 		}

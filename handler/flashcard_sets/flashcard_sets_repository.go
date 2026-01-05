@@ -37,13 +37,13 @@ func NewInsertFlashCardsSet(db *pgxpool.Pool) InsertFlashCardsSetFunc {
 
 		const insertSetSQL = `
             INSERT INTO tbl_flashcard_sets
-                (owner_id, title, description, is_public, create_by)
+                (owner_user_token, title, description, is_public, create_by)
             VALUES ($1,$2,$3,$4,$5)
             RETURNING id
         `
 		var setID int
 		if err = tx.QueryRow(ctx, insertSetSQL,
-			sets.OwnerId, sets.Title, sets.Description, sets.IsPublic, sets.Username,
+			sets.OwnerIdToken, sets.Title, sets.Description, sets.IsPublic, sets.UserId,
 		).Scan(&setID); err != nil {
 			logger.Error("failed to insert flashcard_sets", zap.Error(err))
 			return errors.New(api.SomeThingWentWrong)
@@ -79,7 +79,7 @@ func NewInsertFlashCardsSet(db *pgxpool.Pool) InsertFlashCardsSetFunc {
 					card.Back,
 					finalChoices,
 					CardStatusStudying,
-					sets.Username,
+					sets.UserId,
 					i, // seq
 				)
 			}
@@ -131,7 +131,7 @@ func NewDuplicateFlashCardsSet(db *pgxpool.Pool) DuplicateFlashCardsSetFunc {
 		}()
 		const dupSetSQL = `
 		INSERT INTO tbl_flashcard_sets
-				(owner_id, title, description, is_public, create_by)
+				(owner_user_token, title, description, is_public, create_by)
 		SELECT  $1       , title, description, is_public, $2
 		FROM    tbl_flashcard_sets
 		WHERE   id = $3
@@ -139,8 +139,8 @@ func NewDuplicateFlashCardsSet(db *pgxpool.Pool) DuplicateFlashCardsSetFunc {
 `
 		if err = tx.QueryRow(
 			ctx, dupSetSQL,
-			req.OwnerID,
-			req.Username,
+			req.OwnerIdToken,
+			req.UserId,
 			req.OldSetID,
 		).Scan(&newSetID); err != nil {
 			if errors.Is(err, pgx.ErrNoRows) {
@@ -160,7 +160,7 @@ func NewDuplicateFlashCardsSet(db *pgxpool.Pool) DuplicateFlashCardsSetFunc {
 		if _, err = tx.Exec(
 			ctx, dupCardsSQL,
 			newSetID,
-			req.Username,
+			req.UserId,
 			req.OldSetID,
 		); err != nil {
 			logger.Error("duplicate cards failed", zap.Error(err), zap.Int("new_set_id", newSetID))
@@ -181,9 +181,9 @@ func NewInsertAndMergeFlashCardSetsTracker(
 ) InsertAndMergeFlashCardSetsTrackerFunc {
 	const upsertSQL = `
 		INSERT INTO public.tbl_flashcard_sets_tracker
-				(set_id, user_id, card_id)
+				(set_id, user_id_token, card_id)
 		VALUES ($1, $2, $3)
-		ON CONFLICT (user_id, set_id)
+		ON CONFLICT (user_id_token, set_id)
 		DO UPDATE
 		   SET card_id = EXCLUDED.card_id;    
 		`
@@ -211,7 +211,7 @@ func NewInsertAndMergeFlashCardSetsTracker(
 		if _, err = tx.Exec(
 			ctx, upsertSQL,
 			row.SetID,
-			row.OwnerID,
+			row.OwnerIDToken,
 			row.CardID,
 		); err != nil {
 			logger.Error("upsert tracker failed", zap.Error(err))
@@ -303,7 +303,7 @@ func NewUpdateFlashCardSets(db *pgxpool.Pool) UpdateFlashCardSetsFunc {
 			idx++
 		}
 		setClauses = append(setClauses, fmt.Sprintf("update_by    = $%d", idx))
-		args = append(args, req.Username)
+		args = append(args, req.UserId)
 		idx++
 		setClauses = append(setClauses, "update_at    = now()")
 
@@ -337,7 +337,7 @@ func NewDeleteFlashCardSets(db *pgxpool.Pool) DeleteFlashCardSetsFunc {
                    update_at  = now()
              WHERE id = $2
         `
-		if _, err := db.Exec(ctx, sql, req.Username, req.Id); err != nil {
+		if _, err := db.Exec(ctx, sql, req.UserId, req.Id); err != nil {
 			logger.Error("failed to delete flashcard_sets", zap.Error(err))
 			return errors.New(api.SomeThingWentWrong)
 		}
@@ -349,7 +349,7 @@ type ListFlashCardSetsFunc func(
 	ctx context.Context,
 	logger *zap.Logger,
 	req FlashCardSetsListRequest,
-	ownerId int,
+	ownerId string,
 ) (FlashCardSetsListResponse, error)
 
 func NewListFlashCardSets(db *pgxpool.Pool) ListFlashCardSetsFunc {
@@ -357,7 +357,7 @@ func NewListFlashCardSets(db *pgxpool.Pool) ListFlashCardSetsFunc {
 		ctx context.Context,
 		logger *zap.Logger,
 		req FlashCardSetsListRequest,
-		ownerId int,
+		ownerId string,
 	) (FlashCardSetsListResponse, error) {
 		var resp FlashCardSetsListResponse
 		page := int(req.Page.IntPart())
@@ -369,7 +369,7 @@ func NewListFlashCardSets(db *pgxpool.Pool) ListFlashCardSetsFunc {
 		const countSQL = `
 			SELECT count(*) 
 			  FROM tbl_flashcard_sets
-			 WHERE (owner_id = $1 OR ($2 = 'N' AND is_public = 'Y'))
+			 WHERE (owner_user_token = $1 OR ($2 = 'N' AND is_public = 'Y'))
 			   AND is_public = $3
 			   AND (title || ' ' || description) LIKE $4
 				and is_deleted = 'N'
@@ -385,14 +385,14 @@ func NewListFlashCardSets(db *pgxpool.Pool) ListFlashCardSetsFunc {
 		totalPages := int64(math.Ceil(float64(totalElements) / float64(size)))
 
 		const listSQL = `
-			SELECT id , title, description, is_public, owner_id, create_by,
+			SELECT id , title, description, is_public, owner_user_token, create_by,
 			     (
 					SELECT COUNT(*) 
 					FROM tbl_flashcards f 
 					WHERE f.set_id = s.id
 				) AS term    
 			  FROM tbl_flashcard_sets s
-			 WHERE (owner_id = $1 OR ($2 = 'N' AND is_public = 'Y'))
+			 WHERE (owner_user_token = $1 OR ($2 = 'N' AND is_public = 'Y'))
 			   AND is_public = $3
 			   AND (title || ' ' || description) LIKE $4
 			 	and is_deleted = 'N'
@@ -416,7 +416,7 @@ func NewListFlashCardSets(db *pgxpool.Pool) ListFlashCardSetsFunc {
 				&d.Title,
 				&d.Description,
 				&d.IsPublic,
-				&d.OwnerId,
+				&d.OwnerTokenId,
 				&d.OwnerName,
 				&d.Term,
 			); err != nil {
@@ -443,7 +443,7 @@ type FlashCardSetsInquiryFunc func(
 	ctx context.Context,
 	logger *zap.Logger,
 	setID int,
-	userID int,
+	userID string,
 ) ([]FlashCardSetsInquiryResponse, error)
 
 func NewFlashCardSetsInquiry(db *pgxpool.Pool) FlashCardSetsInquiryFunc {
@@ -451,7 +451,7 @@ func NewFlashCardSetsInquiry(db *pgxpool.Pool) FlashCardSetsInquiryFunc {
 		ctx context.Context,
 		logger *zap.Logger,
 		setID int,
-		userID int,
+		userID string,
 	) ([]FlashCardSetsInquiryResponse, error) {
 		const inquirySQL = `
             SELECT id, front, back, choices, status, create_at, create_by,seq
@@ -513,7 +513,7 @@ func NewFlashCardSetsInquiry(db *pgxpool.Pool) FlashCardSetsInquiryFunc {
 		if len(result) != 0 {
 			sqlTrack := `
 				select card_id from tbl_flashcard_sets_tracker
-				where user_id=$1 and set_id = $2
+				where user_id_token=$1 and set_id = $2
 				`
 			var cardId decimal.Decimal
 			err := db.QueryRow(ctx, sqlTrack, userID, setID).Scan(&cardId)

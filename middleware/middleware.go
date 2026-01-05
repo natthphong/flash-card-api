@@ -47,14 +47,16 @@ func JWTMiddleware(jwtSecret string) fiber.Handler {
 		if !ok {
 			return api.JwtError(c, "Failed to parse token claims")
 		}
-		id, ok := claims["userId"].(string)
-		if !ok {
+		userIdToken, ok := claims["userIdToken"].(string)
+		if !ok || userIdToken == "" {
 			return api.Forbidden(c)
 		}
-		if !ok {
+		userId, ok := claims["userId"].(string)
+		if !ok || userId == "" {
 			return api.Forbidden(c)
 		}
-		c.Locals("userId", id)
+		c.Locals("userIdToken", userIdToken)
+		c.Locals("userId", userId)
 		return c.Next()
 	}
 }

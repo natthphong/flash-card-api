@@ -38,7 +38,7 @@ package auth
 //			insert into tbl_users (username, email, name, password, create_by, status)
 //				VALUES ($1,$2,$3,$4,$5,$6)
 //		`
-//		_, err = dbPool.Exec(ctx, sqlRegister, req.Username, req.Email, req.Name, req.Password, req.Username, utils.Pending)
+//		_, err = dbPool.Exec(ctx, sqlRegister, req.UserId, req.Email, req.Name, req.Password, req.UserId, utils.Pending)
 //		if err != nil {
 //			logger.Error(err.Error())
 //			return api.InternalError(c, api.SomeThingWentWrong)

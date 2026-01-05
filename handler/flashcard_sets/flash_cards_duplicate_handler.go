@@ -1,8 +1,6 @@
 package flashcard_sets
 
 import (
-	"strconv"
-
 	"github.com/gofiber/fiber/v2"
 	"gitlab.com/home-server7795544/home-server/flash-card/flash-card-api/api"
 	"gitlab.com/home-server7795544/home-server/flash-card/flash-card-api/internal/logz"
@@ -28,15 +26,11 @@ func NewDuplicateFlashCardsSetHandler(
 			logger.Error(err.Error(), zap.String("requestId", requestId))
 			return api.BadRequest(c, err.Error())
 		}
-		username := c.Locals("username").(string)
-		req.Username = username
+		userIdToken := c.Locals("userIdToken").(string)
 		userId := c.Locals("userId").(string)
-		id, err := strconv.Atoi(userId)
-		if err != nil {
-			logger.Error(err.Error(), zap.String("requestId", requestId))
-			return api.InternalError(c, api.SomeThingWentWrong)
-		}
-		req.OwnerID = id
+		req.UserId = userId
+	
+		req.OwnerIdToken = userIdToken
 		newSetId, err := duplicateFlashCardsSetFunc(ctx, logger, req)
 		if err != nil {
 			logger.Error(err.Error(), zap.String("requestId", requestId))

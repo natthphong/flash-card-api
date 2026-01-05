@@ -3,11 +3,12 @@ package flashcard_sets
 import (
 	"context"
 	"fmt"
+	"strings"
+
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/pkg/errors"
 	"gitlab.com/home-server7795544/home-server/flash-card/flash-card-api/api"
 	"go.uber.org/zap"
-	"strings"
 )
 
 type InsertFlashCardsFunc func(ctx context.Context, logger *zap.Logger, flashCards FlashCardsCreateRequest) error
@@ -57,7 +58,7 @@ func NewInsertFlashCards(db *pgxpool.Pool) InsertFlashCardsFunc {
 				card.Back,
 				finalChoices,
 				CardStatusStudying,
-				flashCards.Username,
+				flashCards.UserId,
 				i,
 			)
 		}
@@ -116,7 +117,7 @@ func NewUpdateFlashCards(db *pgxpool.Pool) UpdateFlashCardsFunc {
 		}
 		// audit fields
 		setClauses = append(setClauses, fmt.Sprintf("update_by = $%d", idx))
-		args = append(args, req.Username)
+		args = append(args, req.UserId)
 		idx++
 		setClauses = append(setClauses, "update_at  = now()")
 
@@ -150,7 +151,7 @@ func NewDeleteFlashCards(db *pgxpool.Pool) DeleteFlashCardsFunc {
                    update_at  = now()
              WHERE id = $2
         `
-		if _, err := db.Exec(ctx, sql, req.Username, req.Id); err != nil {
+		if _, err := db.Exec(ctx, sql, req.UserId, req.Id); err != nil {
 			logger.Error("failed to delete flashcard", zap.Error(err))
 			return errors.New(api.SomeThingWentWrong)
 		}

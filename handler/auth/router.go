@@ -2,6 +2,7 @@ package auth
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"gitlab.com/home-server7795544/home-server/flash-card/flash-card-api/adapter"
 	"gitlab.com/home-server7795544/home-server/flash-card/flash-card-api/config"
 )
@@ -9,6 +10,7 @@ import (
 func GetRouter(group fiber.Router,
 	config config.Config,
 	adapterHomeServer adapter.Adapter,
+	dbPool *pgxpool.Pool,
 ) {
 	JwtConfig := config.JwtAuthConfig
 	group.Get("/me", MeHandler(JwtConfig.JwtSecret))
@@ -17,6 +19,7 @@ func GetRouter(group fiber.Router,
 	authGroup.Post("/login", LoginHandler(
 		adapterHomeServer,
 		&config,
+		dbPool,
 	))
 
 }

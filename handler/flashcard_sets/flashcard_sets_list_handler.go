@@ -5,7 +5,6 @@ import (
 	"gitlab.com/home-server7795544/home-server/flash-card/flash-card-api/api"
 	"gitlab.com/home-server7795544/home-server/flash-card/flash-card-api/internal/logz"
 	"go.uber.org/zap"
-	"strconv"
 )
 
 func NewListHandler(
@@ -26,14 +25,9 @@ func NewListHandler(
 			logger.Error(err.Error(), zap.String("requestId", requestId))
 			return api.BadRequest(c, err.Error())
 		}
-		userId := c.Locals("userId").(string)
-		id, err := strconv.Atoi(userId)
-		if err != nil {
-			logger.Error(err.Error(), zap.String("requestId", requestId))
-			return api.InternalError(c, api.SomeThingWentWrong)
-		}
-
-		res, err := listFlashCardSetsFunc(ctx, logger, req, id)
+		userIdToken := c.Locals("userIdToken").(string)
+	
+		res, err := listFlashCardSetsFunc(ctx, logger, req, userIdToken)
 		if err != nil {
 			logger.Error(err.Error(), zap.String("requestId", requestId))
 			return api.InternalError(c, api.SomeThingWentWrong)

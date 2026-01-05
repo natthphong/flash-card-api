@@ -26,7 +26,7 @@ func NewDeleteHandler(
 			return api.BadRequest(c, err.Error())
 		}
 
-		req.Username = c.Locals("username").(string)
+		req.UserId = c.Locals("userId").(string)
 
 		if err := deleteFlashCardSetsFunc(ctx, logger, req); err != nil {
 			logger.Error("delete failed", zap.String("requestId", requestId), zap.Error(err))

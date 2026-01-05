@@ -6,9 +6,9 @@ import (
 )
 
 type FlashCardsCreateRequest struct {
-	SetId    decimal.Decimal `json:"setId"`
-	Username string
-	Cards    []InsertFlashCards `json:"flashCards"`
+	SetId  decimal.Decimal `json:"setId"`
+	UserId string
+	Cards  []InsertFlashCards `json:"flashCards"`
 }
 
 func (r FlashCardsCreateRequest) Validate() error {
@@ -22,12 +22,12 @@ func (r FlashCardsCreateRequest) Validate() error {
 }
 
 type FlashCardsUpdateRequest struct {
-	Id       decimal.Decimal `json:"id"`
-	Front    *string         `json:"front,omitempty"`
-	Back     *string         `json:"back,omitempty"`
-	Choices  *[]string       `json:"choices,omitempty"`
-	Status   *string         `json:"status,omitempty"`
-	Username string          // from middleware
+	Id      decimal.Decimal `json:"id"`
+	Front   *string         `json:"front,omitempty"`
+	Back    *string         `json:"back,omitempty"`
+	Choices *[]string       `json:"choices,omitempty"`
+	Status  *string         `json:"status,omitempty"`
+	UserId  string          // from middleware
 }
 
 func (r FlashCardsUpdateRequest) Validate() error {
@@ -47,8 +47,8 @@ func (r FlashCardsUpdateRequest) Validate() error {
 }
 
 type FlashCardsDeleteRequest struct {
-	Id       decimal.Decimal `json:"id"`
-	Username string          // from middleware
+	Id     decimal.Decimal `json:"id"`
+	UserId string          // from middleware
 }
 
 func (r FlashCardsDeleteRequest) Validate() error {

@@ -230,3 +230,13 @@ CREATE TABLE tbl_chat_messages (
 
 CREATE INDEX idx_chat_msg_session_time ON tbl_chat_messages(session_id, created_at);
 
+
+
+create table public.tbl_flashcard_sets_tracker
+(
+    set_id        integer,
+    user_id_token varchar(36),
+    card_id       bigint,
+    primary key (user_id_token,set_id)
+);
+

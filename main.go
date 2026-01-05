@@ -15,7 +15,6 @@ import (
 	"gitlab.com/home-server7795544/home-server/flash-card/flash-card-api/adapter"
 	"gitlab.com/home-server7795544/home-server/flash-card/flash-card-api/api"
 	"gitlab.com/home-server7795544/home-server/flash-card/flash-card-api/config"
-	"gitlab.com/home-server7795544/home-server/flash-card/flash-card-api/handler/admin"
 	"gitlab.com/home-server7795544/home-server/flash-card/flash-card-api/handler/auth"
 	"gitlab.com/home-server7795544/home-server/flash-card/flash-card-api/handler/daily_plans"
 	"gitlab.com/home-server7795544/home-server/flash-card/flash-card-api/handler/exam_sessions"
@@ -93,14 +92,14 @@ func main() {
 	})
 
 	// auth
-	auth.GetRouter(group, *cfg, *homeServerAdapter)
+	auth.GetRouter(group, *cfg, *homeServerAdapter, dbPool)
 
-	//admin
-	admin.GetRouter(group, *cfg, &redisCMD, dbPool, httputil.NewHttpPostCall(httpClient))
-
+	////admin
+	//admin.GetRouter(group, *cfg, &redisCMD, dbPool, httputil.NewHttpPostCall(httpClient))
 	//flashCardSets
 	flashcard_sets.GetRouter(group, *cfg, &redisCMD, dbPool, httputil.NewHttpPostCall(httpClient))
 
+	//TODO
 	// daily
 	daily_plans.GetRouter(group, *cfg, &redisCMD, dbPool, httputil.NewHttpPostCall(httpClient))
 

@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/csv"
+	"strings"
+
 	"github.com/gofiber/fiber/v2"
 	"gitlab.com/home-server7795544/home-server/flash-card/flash-card-api/api"
 	"gitlab.com/home-server7795544/home-server/flash-card/flash-card-api/internal/logz"
 	"go.uber.org/zap"
-	"strconv"
-	"strings"
 )
 
 func NewFlashCardSetsImportCsvHandler(
@@ -33,14 +33,9 @@ func NewFlashCardSetsImportCsvHandler(
 		}
 
 		// 2) identity from middleware
-		req.Username = c.Locals("username").(string)
-		uidStr := c.Locals("userId").(string)
-		ownerID, convErr := strconv.Atoi(uidStr)
-		if convErr != nil {
-			logger.Error("atoi userId", zap.String("requestId", requestId), zap.Error(convErr))
-			return api.InternalError(c, api.SomeThingWentWrong)
-		}
-		req.OwnerId = ownerID
+		req.UserId = c.Locals("userId").(string)
+		userIdToken := c.Locals("userIdToken").(string)
+		req.OwnerIdToken = userIdToken
 
 		// 3) decode CSV
 		csvBytes, decodeErr := base64.StdEncoding.DecodeString(req.File)
@@ -98,12 +93,12 @@ func NewFlashCardSetsImportCsvHandler(
 
 		// 5) reuse existing InsertFlashCardsSetFunc
 		createReq := FlashCardSetsCreateRequest{
-			Title:       req.Title,
-			Description: req.Description,
-			IsPublic:    req.IsPublic,
-			FlashCards:  &cards,
-			OwnerId:     req.OwnerId,
-			Username:    req.Username,
+			Title:        req.Title,
+			Description:  req.Description,
+			IsPublic:     req.IsPublic,
+			FlashCards:   &cards,
+			OwnerIdToken: req.OwnerIdToken,
+			UserId:       req.UserId,
 		}
 		if err := insertFlashCardsSetFunc(ctx, logger, createReq); err != nil {
 			return api.InternalError(c, api.SomeThingWentWrong)

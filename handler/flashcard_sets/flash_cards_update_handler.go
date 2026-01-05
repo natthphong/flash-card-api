@@ -26,13 +26,13 @@ func NewFlashCardsUpdateHandler(
 			logger.Error(err.Error(), zap.String("requestId", requestId))
 			return api.BadRequest(c, err.Error())
 		}
+		userId := c.Locals("userId").(string)
+		req.UserId = userId
 		err := updateFlashCardsFunc(ctx, logger, req)
 		if err != nil {
 			logger.Error(err.Error(), zap.String("requestId", requestId))
 			return api.InternalError(c, api.SomeThingWentWrong)
 		}
-		username := c.Locals("username").(string)
-		req.Username = username
 
 		return api.Ok(c, nil)
 	}
