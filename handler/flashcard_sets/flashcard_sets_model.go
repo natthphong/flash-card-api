@@ -40,20 +40,20 @@ func (r *FlashCardSetsCreateRequest) Validate() error {
 }
 
 type ResetFlashCardStatusRequest struct {
-	SetID  decimal.Decimal `json:"setId"`
-	Status string          `json:"status"`
+	SetID decimal.Decimal `json:"setId"`
+	//Status string          `json:"status"`
 }
 
 func (b *ResetFlashCardStatusRequest) Validate() error {
 	if b.SetID.IsZero() {
 		return errors.New("setId is required and must be > 0")
 	}
-	switch b.Status {
-	case CardStatusStudying, CardStatusLearned:
-		return nil
-	default:
-		return errors.New(`status must be either "studying" or "learned"`)
-	}
+	//switch b.Status {
+	//case CardStatusStudying, CardStatusLearned:
+	//	return nil
+	//default:
+	//return errors.New(`status must be either "studying" or "learned"`)
+	return nil
 }
 
 type DuplicateFlashCardsSetRequest struct {
@@ -72,6 +72,7 @@ func (r DuplicateFlashCardsSetRequest) Validate() error {
 type FlashCardSetsTrackerUpsert struct {
 	SetID        decimal.Decimal `json:"setId"`
 	CardID       decimal.Decimal `json:"cardId"`
+	TrackerType  string          `json:"trackerType"`
 	OwnerIDToken string
 }
 

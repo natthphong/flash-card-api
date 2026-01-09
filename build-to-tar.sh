@@ -2,7 +2,7 @@
 set -e
 
 APP_NAME=flash-card
-IMAGE_TAG=2
+IMAGE_TAG=3
 OUTPUT_TAR=${APP_NAME}-${IMAGE_TAG}.tar
 IMAGE_NAME=${APP_NAME}:${IMAGE_TAG}
 echo "==> Build Go binary"
@@ -34,3 +34,6 @@ curl -fS -X POST \
 echo "==> Done"
 echo "Image: ${IMAGE_NAME}"
 echo "Tar  : ${OUTPUT_TAR}"
+
+rm -rf "${OUTPUT_TAR}"
+rm -rf goapp

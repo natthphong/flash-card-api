@@ -36,9 +36,11 @@ func GetRouter(group fiber.Router,
 	flashCardSetsGroup.Post("/duplicate", NewDuplicateFlashCardsSetHandler(
 		NewDuplicateFlashCardsSet(dbPool),
 	))
+	// enhance
 	flashCardSetsGroup.Post("/track", NewInsertAndMergeFlashCardSetsTrackerHandler(
 		NewInsertAndMergeFlashCardSetsTracker(dbPool),
 	))
+	// enhance
 	flashCardSetsGroup.Post("/reset", NewResetStatusHandler(
 		NewResetStatusFlashCards(dbPool),
 	))

@@ -24,10 +24,9 @@ func NewResetStatusHandler(
 			logger.Error(err.Error(), zap.String("requestId", requestID))
 			return api.BadRequest(c, err.Error())
 		}
-		
+
 		if err := resetFunc(ctx, logger, ResetFlashCardStatusRequest{
-			SetID:  body.SetID,
-			Status: body.Status,
+			SetID: body.SetID,
 		}); err != nil {
 			return api.InternalError(c, api.SomeThingWentWrong)
 		}

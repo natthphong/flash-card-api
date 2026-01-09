@@ -119,6 +119,8 @@ func main() {
 func initFiber() *fiber.App {
 	app := fiber.New(
 		fiber.Config{
+			BodyLimit:             10 * 1024 * 1024,
+			ReadBufferSize:        64 * 1024,
 			ReadTimeout:           5 * time.Second,
 			WriteTimeout:          5 * time.Second,
 			IdleTimeout:           30 * time.Second,
@@ -127,7 +129,9 @@ func initFiber() *fiber.App {
 			StrictRouting:         true,
 		},
 	)
-	app.Use(cors.New(cors.ConfigDefault))
+	defaultConfig := cors.ConfigDefault
+	defaultConfig.AllowHeaders = "*"
+	app.Use(cors.New(defaultConfig))
 	app.Use(SetHeaderID())
 	return app
 }

@@ -236,7 +236,8 @@ create table public.tbl_flashcard_sets_tracker
 (
     set_id        integer,
     user_id_token varchar(36),
+    tracker_type varchar(36),
     card_id       bigint,
-    primary key (user_id_token,set_id)
+    primary key (user_id_token,set_id,tracker_type)
 );
 

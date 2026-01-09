@@ -15,6 +15,11 @@ import (
 	"go.uber.org/zap"
 )
 
+const (
+	FlashCardPageType     = "flashCardPageType"
+	FlashCardPracticeType = "flashCardPracticeType"
+)
+
 type InsertFlashCardsSetFunc func(ctx context.Context, logger *zap.Logger, sets FlashCardSetsCreateRequest) error
 
 func NewInsertFlashCardsSet(db *pgxpool.Pool) InsertFlashCardsSetFunc {
@@ -181,9 +186,9 @@ func NewInsertAndMergeFlashCardSetsTracker(
 ) InsertAndMergeFlashCardSetsTrackerFunc {
 	const upsertSQL = `
 		INSERT INTO public.tbl_flashcard_sets_tracker
-				(set_id, user_id_token, card_id)
-		VALUES ($1, $2, $3)
-		ON CONFLICT (user_id_token, set_id)
+				(set_id, user_id_token,tracker_type, card_id)
+		VALUES ($1, $2, $3,$4)
+		ON CONFLICT (user_id_token, tracker_type, set_id)
 		DO UPDATE
 		   SET card_id = EXCLUDED.card_id;    
 		`
@@ -207,11 +212,15 @@ func NewInsertAndMergeFlashCardSetsTracker(
 				err = errors.New(api.SomeThingWentWrong)
 			}
 		}()
+		if row.TrackerType == "" {
+			row.TrackerType = FlashCardPageType
+		}
 
 		if _, err = tx.Exec(
 			ctx, upsertSQL,
 			row.SetID,
 			row.OwnerIDToken,
+			row.TrackerType,
 			row.CardID,
 		); err != nil {
 			logger.Error("upsert tracker failed", zap.Error(err))
@@ -234,7 +243,11 @@ func NewResetStatusFlashCards(db *pgxpool.Pool) ResetStatusFlashCardsFunc {
 		SET    status = $1
 		WHERE  set_id = $2;
 	`
-
+	const deleteTracker = `
+		delete
+		from tbl_flashcard_sets_tracker
+		where set_id=$1;    
+		`
 	return func(
 		ctx context.Context,
 		logger *zap.Logger,
@@ -256,7 +269,16 @@ func NewResetStatusFlashCards(db *pgxpool.Pool) ResetStatusFlashCardsFunc {
 				err = errors.New(api.SomeThingWentWrong)
 			}
 		}()
-		if _, err = tx.Exec(ctx, updateSQL, req.Status, req.SetID); err != nil {
+		//if  req.Status == ""{
+		//	req.Status = CardStatusStudying
+		//}
+		if _, err = tx.Exec(ctx, updateSQL, CardStatusStudying, req.SetID); err != nil {
+			logger.Error("reset status failed",
+				zap.Error(err), zap.Any("set_id", req.SetID))
+			return errors.New(api.SomeThingWentWrong)
+		}
+		// TODO change to soft deleted or something
+		if _, err = tx.Exec(ctx, deleteTracker, req.SetID); err != nil {
 			logger.Error("reset status failed",
 				zap.Error(err), zap.Any("set_id", req.SetID))
 			return errors.New(api.SomeThingWentWrong)

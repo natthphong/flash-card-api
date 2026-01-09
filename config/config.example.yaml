@@ -1,20 +1,62 @@
 LogConfig:
   Level: "debug"
 Server:
-  Name: "line-bot"
+  Name: "flash-card"
   Port: "8080"
-lineConfig:
-  bot-test:
-    ChannelSecret: ""
-    ChannelToken: ""
-Env: DEV
+Env: LOCAL
+JwtAuthConfig:
+  JwtSecret:
+  AccessTokenDuration: ""
+  RefreshTokenDuration: ""
 DBConfig:
-  Host: "localhost"
-  Port: "5432"
-  Username: "postgres"
+  Host: ""
+  Port: ""
+  Username: ""
   Password: ""
-  Name: "postgres"
+  Name: ""
   MaxOpenConn: 4
   MaxConnLifeTime: 300
+HTTP:
+  TimeOut: "10s"
+  MaxIdleConn: 100
+  MaxIdleConnPerHost: 100
+  MaxConnPerHost: 100
+
+RedisConfig:
+  Mode: "normal"
+  Host: ""
+  Port: ""
+  DB: 0
+  PoolTimeout: "10s"
+  DialTimeout: "10s"
+  WriteTimeout: "30s"
+  ReadTimeout: "30s"
+  ConnMaxIdleTime: "10s"
 
 
+KafkaConfig:
+  Brokers:
+    - ""
+  Group: "local"
+  Version: "3.2.0"
+  SSAL: false
+  TLS: false
+  CertPath: ""
+  Certs: ""
+  Username: ""
+  Password: ""
+  Strategy: "roundrobin"
+  ClientID: ""
+  Topic:
+    WebHookTopic: "proxy.webhook.dev"
+
+HomeProxyAdapter:
+  BaseURL: ""
+  TimeOut: "20s"
+HomeServerAdapter:
+  BaseURL: ""
+  TimeOut: "20s"
+
+
+AppCode:
+CompanyCode:
