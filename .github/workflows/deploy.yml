@@ -29,6 +29,8 @@ jobs:
           APP_NAME: ${{ secrets.APP_NAME }}
           EXTERNAL_PORT: ${{ secrets.EXTERNAL_PORT }}
           IMAGE_TAG: ${{ github.ref_name }}
+          CONFIG_YAML_B64: ${{ secrets.CONFIG_YAML_B64 }}
+          ENV: ${{ secrets.ENV }}
         run: |
           chmod +x ci/deploy-portainer.sh
           ci/deploy-portainer.sh
