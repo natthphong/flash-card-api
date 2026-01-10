@@ -1,13 +1,18 @@
 package api
 
 import (
+	"reflect"
+
+	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
+	"github.com/pkg/errors"
 )
 
 const (
 	InvalidateBody     = "Invalidate Body"
 	SomeThingWentWrong = "Something went wrong"
 	NotFound           = "Not Found"
+	TtsPath            = "/v1/ai/tts"
 )
 
 type Response struct {
@@ -15,7 +20,61 @@ type Response struct {
 	Message string      `json:"message"`
 	Body    interface{} `json:"body,omitempty"`
 }
+type ValidationError struct {
+	FieldName    string `json:"fieldName"`
+	ErrorType    string `json:"errorType"`
+	ErrorMessage string `json:"errorMessage"`
+}
 
+func ValidationErrorResponse(c *fiber.Ctx, err error, request interface{}) error {
+	var ve validator.ValidationErrors
+	if errors.As(err, &ve) {
+		errs := []ValidationError{}
+
+		for _, fe := range ve {
+			jsonField := GetJSONFieldName(request, fe.StructField())
+			switch fe.Tag() {
+			case "required":
+				errs = append(errs, ValidationError{
+					FieldName:    jsonField,
+					ErrorType:    "required",
+					ErrorMessage: fe.Error(),
+				})
+			case "min":
+				errs = append(errs, ValidationError{
+					FieldName:    jsonField,
+					ErrorType:    "min",
+					ErrorMessage: fe.Error(),
+				})
+			case "max":
+				errs = append(errs, ValidationError{
+					FieldName:    jsonField,
+					ErrorType:    "max",
+					ErrorMessage: fe.Error(),
+				})
+			default:
+				errs = append(errs, ValidationError{
+					FieldName:    jsonField,
+					ErrorType:    fe.Tag(),
+					ErrorMessage: fe.Error(),
+				})
+			}
+		}
+		return ValidateError(c, errs)
+	}
+
+	return BadRequest(c, "Invalid request")
+}
+func ValidateError(c *fiber.Ctx, body interface{}) error {
+	return c.Status(fiber.StatusBadRequest).JSON(ErrWithBody("400", "Invalid Request", body))
+}
+func ErrWithBody(code string, message string, body interface{}) Response {
+	return Response{
+		Code:    code,
+		Message: message,
+		Body:    body,
+	}
+}
 func SuccessResponse(body interface{}) Response {
 	return Response{
 		Code:    "000",
@@ -76,4 +135,29 @@ func BadRequest(c *fiber.Ctx, message string) error {
 		msg = message
 	}
 	return c.Status(fiber.StatusBadRequest).JSON(Err("400", msg))
+}
+func GetJSONFieldName(val interface{}, fieldName string) string {
+	t := reflect.TypeOf(val)
+	if t.Kind() == reflect.Ptr {
+		t = t.Elem()
+	}
+	if f, ok := t.FieldByName(fieldName); ok {
+		tag := f.Tag.Get("json")
+		if tag != "" && tag != "-" {
+			if idx := indexComma(tag); idx >= 0 {
+				return tag[:idx]
+			}
+			return tag
+		}
+	}
+	return fieldName
+}
+
+func indexComma(s string) int {
+	for i, c := range s {
+		if c == ',' {
+			return i
+		}
+	}
+	return -1
 }
