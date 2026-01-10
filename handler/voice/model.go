@@ -1,10 +1,7 @@
 package voice
 
-import "github.com/shopspring/decimal"
-
 type VoiceRequest struct {
-	Text  string          `json:"text,required"`
-	Speed decimal.Decimal `json:"speed"`
+	Text string `json:"text,required"`
 }
 
 type TtsRequestToHomeProxy struct {
@@ -12,6 +9,11 @@ type TtsRequestToHomeProxy struct {
 }
 
 type TtsResponseFromHomeProxy struct {
+	Code    string `json:"code"`
+	Message string `json:"message"`
+	Body    TtsResponseBodyFromHomeProxy
+}
+type TtsResponseBodyFromHomeProxy struct {
 	Key string `json:"key"`
 	Url string `json:"url"`
 }

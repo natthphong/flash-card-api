@@ -1,21 +1,20 @@
 package voice
 
 import (
-	"github.com/go-redis/redis/v9"
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"gitlab.com/home-server7795544/home-server/flash-card/flash-card-api/config"
-	"gitlab.com/home-server7795544/home-server/flash-card/flash-card-api/internal/httputil"
+	"gitlab.com/home-server7795544/home-server/flash-card/flash-card-api/adapter"
 )
 
-func GetRouter(group fiber.Router,
-	config config.Config,
-	redisCMD *redis.UniversalClient,
+func GetRouter(
+	group fiber.Router,
 	dbPool *pgxpool.Pool,
-	postFunc httputil.HTTPPostRequestFunc,
+	homeProxy adapter.Adapter,
 ) {
-	jobGroup := group.Group("/job")
-	jobGroup.Post("/daily-plans/generate", NewVoceHandler(
+	voiceGroup := group.Group("/voice")
+	voiceGroup.Post("/generate", NewVoceHandler(
+		homeProxy,
 		NewUpdateHitCacheAndReturnAudio(dbPool),
+		NewInsertAudioUrlAndKeyToCacheFunc(dbPool),
 	))
 }

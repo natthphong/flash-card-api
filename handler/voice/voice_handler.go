@@ -8,12 +8,14 @@ import (
 	"gitlab.com/home-server7795544/home-server/flash-card/flash-card-api/adapter"
 	"gitlab.com/home-server7795544/home-server/flash-card/flash-card-api/api"
 	"gitlab.com/home-server7795544/home-server/flash-card/flash-card-api/internal/logz"
+	"gitlab.com/home-server7795544/home-server/flash-card/flash-card-api/utils"
 	"go.uber.org/zap"
 )
 
 func NewVoceHandler(
 	homeProxyAdapter adapter.Adapter,
 	updateHitCacheAndReturnAudio UpdateHitCacheAndReturnAudio,
+	insertAudioUrlAndKeyToCacheFunc InsertAudioUrlAndKeyToCacheFunc,
 ) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var req VoiceRequest
@@ -29,11 +31,11 @@ func NewVoceHandler(
 		if err := validate.Struct(req); err != nil {
 			return api.ValidationErrorResponse(c, err, req)
 		}
-		audioUrl, err := updateHitCacheAndReturnAudio(ctx, logger, "")
+		cacheKey := utils.BuildCacheKey(req.Text)
+		audioUrl, err := updateHitCacheAndReturnAudio(ctx, logger, cacheKey)
 		if err != nil || audioUrl == "" {
 			logger.Info("audio url not found in cache")
-			var baseResponse api.Response
-			var bodyTtsResponse TtsResponseFromHomeProxy
+			var ttsResp TtsResponseFromHomeProxy
 			_, body, err := homeProxyAdapter.Post(ctx, api.TtsPath, &adapter.RequestOptions{
 				Headers: map[string]string{"requestId": requestId},
 				JSON: TtsRequestToHomeProxy{
@@ -41,25 +43,30 @@ func NewVoceHandler(
 				},
 			})
 			if err != nil {
-				logger.Warn("failed to post to home server", zap.Error(err))
-				return api.InternalError(c, "cannot login")
+				logger.Warn("failed to post to home proxy", zap.Error(err))
+				return api.InternalError(c, "cannot get audio url")
 			}
-			err = json.Unmarshal(body, &baseResponse)
+			err = json.Unmarshal(body, &ttsResp)
 			if err != nil {
-				logger.Warn("failed to post to home server", zap.Error(err))
-				return api.InternalError(c, "cannot login")
+				logger.Warn("failed to post to home proxy", zap.Error(err))
+				return api.InternalError(c, "cannot get audio url")
 			}
+			audioUrl = ttsResp.Body.Url
 
-			json.Unmarshal(bybaseResponse.Body, &bodyTtsResponse)
-
-			baseResponse.Body.
-				baseResponse.Body["url"]
+			err = insertAudioUrlAndKeyToCacheFunc(ctx, logger, cacheKey, req.Text, audioUrl, ttsResp.Body.Key)
+			if err != nil {
+				logger.Warn("failed to post to home proxy", zap.Error(err))
+				return api.InternalError(c, "cannot get audio url")
+			}
 		}
 		//err := insertDailyPlansFunc(ctx, logger)
 		//if err != nil {
 		//	logger.Error(err.Error(), zap.String("requestId", requestId))
 		//	return api.InternalError(c, err.Error())
 		//}
-		return api.Ok(c, nil)
+		// TODO
+		return api.Ok(c, fiber.Map{
+			"audioUrl": audioUrl,
+		})
 	}
 }

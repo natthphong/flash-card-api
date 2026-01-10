@@ -20,6 +20,8 @@ import (
 	"gitlab.com/home-server7795544/home-server/flash-card/flash-card-api/handler/exam_sessions"
 	"gitlab.com/home-server7795544/home-server/flash-card/flash-card-api/handler/flashcard_sets"
 	"gitlab.com/home-server7795544/home-server/flash-card/flash-card-api/handler/job"
+	"gitlab.com/home-server7795544/home-server/flash-card/flash-card-api/handler/learn"
+	"gitlab.com/home-server7795544/home-server/flash-card/flash-card-api/handler/voice"
 	"gitlab.com/home-server7795544/home-server/flash-card/flash-card-api/internal/cache"
 	"gitlab.com/home-server7795544/home-server/flash-card/flash-card-api/internal/db"
 	"gitlab.com/home-server7795544/home-server/flash-card/flash-card-api/internal/httputil"
@@ -99,6 +101,8 @@ func main() {
 	//flashCardSets
 	flashcard_sets.GetRouter(group, *cfg, &redisCMD, dbPool, httputil.NewHttpPostCall(httpClient))
 
+	voice.GetRouter(group, dbPool, *homeProxyAdapter)
+	learn.GetRouter(group, dbPool)
 	//TODO
 	// daily
 	daily_plans.GetRouter(group, *cfg, &redisCMD, dbPool, httputil.NewHttpPostCall(httpClient))

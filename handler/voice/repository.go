@@ -37,3 +37,20 @@ func NewUpdateHitCacheAndReturnAudio(db *pgxpool.Pool) UpdateHitCacheAndReturnAu
 		return audioUrl, nil
 	}
 }
+
+type InsertAudioUrlAndKeyToCacheFunc func(ctx context.Context, logger *zap.Logger, cacheKey, text, audioUrl, key string) error
+
+func NewInsertAudioUrlAndKeyToCacheFunc(db *pgxpool.Pool) InsertAudioUrlAndKeyToCacheFunc {
+	return func(ctx context.Context, logger *zap.Logger, cacheKey, text, audioUrl, key string) error {
+		sql := `
+			insert into tbl_tts_cache (cache_key, text, voice, speed,audio_url, last_accessed_at, audio_key)
+			values ($1,$2,'DEFAULT',1.0,$3,now(),$4);
+		`
+		_, err := db.Exec(ctx, sql, cacheKey, text, audioUrl, key)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}
+}
