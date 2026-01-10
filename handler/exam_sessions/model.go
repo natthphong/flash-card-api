@@ -11,20 +11,21 @@ import (
 )
 
 type StartExamRequest struct {
-	SetId             *decimal.Decimal  `json:"setId,omitempty"`
-	ClassId           *decimal.Decimal  `json:"classId,omitempty"`
-	DailyPlanId       *decimal.Decimal  `json:"dailyPlanId,omitempty"`
-	QuestionCount     []decimal.Decimal `json:"questionCount"`
-	ExamTotalQuestion decimal.Decimal   `json:"examTotalQuestion"`
-	TimeLimit         *time.Time        `json:"timeLimit,omitempty"`
-	Username          string
+	SetId *decimal.Decimal `json:"sourceSetId,omitempty"`
+	Mode  string           `json:"mode"`
+	//ClassId           *decimal.Decimal  `json:"classId,omitempty"`
+	DailyPlanId      *decimal.Decimal `json:"planId,omitempty"`
+	QuestionCount    decimal.Decimal  `json:"totalQuestions"`
+	TimeLimitSeconds *int64           `json:"timeLimitSec,omitempty"`
+	TimeLimit        time.Time
+	UserId           string
 }
 
 func (r StartExamRequest) Validate() error {
-	if r.SetId == nil && r.ClassId == nil && r.DailyPlanId == nil {
+	if r.SetId == nil && r.DailyPlanId == nil {
 		return errors.New("one of setId, classId or dailyPlanId must be provided")
 	}
-	if r.ExamTotalQuestion.IsZero() || r.ExamTotalQuestion.IsNegative() {
+	if r.QuestionCount.IsZero() || r.QuestionCount.IsNegative() {
 		return errors.New("examTotalQuestion must be provided")
 	}
 	return nil
@@ -102,4 +103,33 @@ func (r ExamSessionUpdateRequest) ToJson() string {
 		return string(jsonBytes)
 	}
 	return "{}"
+}
+
+type ExamSessionListRequest struct {
+	Page     decimal.Decimal `json:"page,required"`
+	Size     decimal.Decimal `json:"size,required"`
+	SearchBy string          `json:"searchBy"`
+}
+
+type ExamSessionListResponse struct {
+	Content       []ExamSessionListResponseDetails `json:"content"`
+	TotalPage     decimal.Decimal                  `json:"totalPage"`
+	TotalElements decimal.Decimal                  `json:"totalElements"`
+}
+
+type ExamSessionListResponseDetails struct {
+	ID             string     `json:"id" db:"id"`
+	Mode           string     `json:"mode" db:"mode"`
+	SourceSetID    string     `json:"sourceSetId" db:"source_set_id"`
+	UserIDToken    string     `json:"userIdToken" db:"user_id_token"`
+	PlanID         *string    `json:"planId" db:"plan_id"`
+	TotalQuestions int        `json:"totalQuestions" db:"total_questions"`
+	TimeLimitSec   int        `json:"timeLimitSec" db:"time_limit_sec"`
+	Status         string     `json:"status" db:"status"`
+	ScoreTotal     float64    `json:"scoreTotal" db:"score_total"`
+	ScoreMax       int        `json:"scoreMax" db:"score_max"`
+	StartedAt      time.Time  `json:"startedAt" db:"started_at"`
+	ExpiresAt      time.Time  `json:"expiresAt" db:"expires_at"`
+	SubmittedAt    *time.Time `json:"submittedAt" db:"submitted_at"`
+	CreatedAt      time.Time  `json:"createdAt" db:"create_at"`
 }

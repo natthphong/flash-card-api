@@ -15,11 +15,16 @@ func GetRouter(group fiber.Router,
 	postFunc httputil.HTTPPostRequestFunc,
 ) {
 	examGroup := group.Group("/exam-sessions")
+	examGroup.Post("", NewExamSessionsListHandler(
+		NewListExamHistory(dbPool),
+	))
 	examGroup.Post("/start", NewStartExamHandler(
 		NewSelectQuestionIds(dbPool),
 		NewInsertStartExamSessions(dbPool),
 		NewGetFlashCardDetailsFromIds(dbPool),
 	))
+
+	//TODO
 	examGroup.Get("/:examId", NewInquiryExamHandler(
 		NewGetExamSession(dbPool),
 		NewGetFlashCardDetailsFromIds(dbPool),
