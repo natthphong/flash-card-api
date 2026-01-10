@@ -9,9 +9,11 @@ import (
 )
 
 type DailyPlanSettingRequest struct {
-	UserId      decimal.Decimal
-	DailyActive string          `json:"dailyActive"`
-	DailyTarget decimal.Decimal `json:"dailyTarget"`
+	UserIdToken  string
+	DailyActive  *string          `json:"dailyActive,omitempty"`
+	DailyTarget  *decimal.Decimal `json:"dailyTarget,omitempty"`
+	DailySetId   *decimal.Decimal `json:"dailySetId,omitempty"`
+	DefaultSetId *decimal.Decimal `json:"defaultSetId,omitempty"`
 }
 
 func (r *DailyPlanSettingRequest) Validate() error {
@@ -21,9 +23,14 @@ func (r *DailyPlanSettingRequest) Validate() error {
 	if !r.DailyTarget.IsPositive() {
 		return fmt.Errorf("dailyTarget cannot be negative")
 	}
-	if r.DailyActive != utils.FlagY && r.DailyActive != utils.FlagN {
+
+	if r.DailyActive != nil && *r.DailyActive != utils.FlagY && *r.DailyActive != utils.FlagN {
 		return fmt.Errorf("dailyActive must be one of [%v, %v]", utils.FlagY, utils.FlagN)
 	}
+	if r.DailyActive != nil && *r.DailyActive == utils.FlagY && (r.DailySetId == nil && r.DefaultSetId == nil) {
+		return fmt.Errorf("dailyActive must be one dailySetId or defaultSetId")
+	}
+
 	return nil
 }
 

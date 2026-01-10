@@ -103,16 +103,18 @@ func main() {
 
 	voice.GetRouter(group, dbPool, *homeProxyAdapter)
 	learn.GetRouter(group, dbPool)
-	//TODO
 	// daily
 	daily_plans.GetRouter(group, *cfg, &redisCMD, dbPool, httputil.NewHttpPostCall(httpClient))
 
 	//job
 	job.GetRouter(group, *cfg, &redisCMD, dbPool, httputil.NewHttpPostCall(httpClient))
 
+	//TODO
 	//exam_sessions
 	exam_sessions.GetRouter(group, *cfg, &redisCMD, dbPool, httputil.NewHttpPostCall(httpClient))
 
+	//TODO
+	// chat bot
 	logger.Info(fmt.Sprintf("/%s/api/v1", cfg.Server.Name))
 	if err = app.Listen(fmt.Sprintf(":%v", cfg.Server.Port)); err != nil {
 		logger.Fatal(err.Error())

@@ -15,6 +15,10 @@ func GetRouter(group fiber.Router,
 	postFunc httputil.HTTPPostRequestFunc,
 ) {
 	dailyPlanGroup := group.Group("/daily-plans")
+	dailyPlanGroup.Get("", NewDailyConfigHandler(
+		NewGetConfigDailyPlanFunc(dbPool),
+	))
+
 	dailyPlanGroup.Post("/setting", NewDailyPlanSettingHandler(
 		NewUpdateDailyPlansFunc(dbPool),
 	))

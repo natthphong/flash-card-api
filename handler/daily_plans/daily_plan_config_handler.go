@@ -8,33 +8,19 @@ import (
 	"go.uber.org/zap"
 )
 
-func NewDailyPlanSettingHandler(
-	updateDailyPlansFunc UpdateDailyPlansFunc,
+func NewDailyConfigHandler(
+	getConfigDailyPlanFunc GetConfigDailyPlanFunc,
 ) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-
-		var (
-			req DailyPlanSettingRequest
-			err error
-		)
 		ctx := c.Context()
 		logger := logz.NewLogger()
 		requestId := c.Get("requestId")
-		if err := c.BodyParser(&req); err != nil {
-			logger.Error(err.Error(), zap.String("requestId", requestId))
-			return api.BadRequest(c, api.InvalidateBody)
-		}
-		if err := req.Validate(); err != nil {
-			logger.Error(err.Error(), zap.String("requestId", requestId))
-			return api.BadRequest(c, err.Error())
-		}
-		req.UserIdToken = utils.GetUserIDToken(c)
-		err = updateDailyPlansFunc(ctx, logger, req)
+		userIdToken := utils.GetUserIDToken(c)
+		res, err := getConfigDailyPlanFunc(ctx, logger, userIdToken)
 		if err != nil {
 			logger.Error(err.Error(), zap.String("requestId", requestId))
 			return api.InternalError(c, err.Error())
 		}
-
-		return api.Ok(c, nil)
+		return api.Ok(c, res)
 	}
 }
