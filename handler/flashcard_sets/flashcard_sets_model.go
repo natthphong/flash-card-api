@@ -117,7 +117,6 @@ func (r FlashCardSetsDeleteRequest) Validate() error {
 type FlashCardSetsListRequest struct {
 	Page     decimal.Decimal `json:"page"`
 	Size     decimal.Decimal `json:"size"`
-	IsMine   string          `json:"isMine"`
 	IsPublic string          `json:"isPublic"`
 	SearchBy string          `json:"searchBy"`
 }

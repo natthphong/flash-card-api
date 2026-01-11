@@ -391,14 +391,17 @@ func NewListFlashCardSets(db *pgxpool.Pool) ListFlashCardSetsFunc {
 		const countSQL = `
 			SELECT count(*) 
 			  FROM tbl_flashcard_sets
-			 WHERE (owner_user_token = $1 OR ($2 = 'N' AND is_public = 'Y'))
-			   AND is_public = $3
-			   AND (title || ' ' || description) LIKE $4
+			 	 WHERE
+				(
+					owner_user_token = $1
+					OR ($2 = 'Y' AND is_public = 'Y')
+				)
+			   AND (title || ' ' || description) LIKE $3
 				and is_deleted = 'N'
 		`
 		var totalElements int64
 		if err := db.QueryRow(ctx, countSQL,
-			ownerId, req.IsMine, req.IsPublic, pattern,
+			ownerId, req.IsPublic, pattern,
 		).Scan(&totalElements); err != nil {
 			logger.Error("failed to count flashcard_sets", zap.Error(err))
 			return resp, errors.New(api.SomeThingWentWrong)
@@ -414,15 +417,18 @@ func NewListFlashCardSets(db *pgxpool.Pool) ListFlashCardSetsFunc {
 					WHERE f.set_id = s.id
 				) AS term    
 			  FROM tbl_flashcard_sets s
-			 WHERE (owner_user_token = $1 OR ($2 = 'N' AND is_public = 'Y'))
-			   AND is_public = $3
-			   AND (title || ' ' || description) LIKE $4
+			 WHERE
+				(
+					owner_user_token = $1
+					OR ($2 = 'Y' AND is_public = 'Y')
+				)
+			   AND (title || ' ' || description) LIKE $3
 			 	and is_deleted = 'N'
 			 ORDER BY id
-			 OFFSET $5 LIMIT $6
+			 OFFSET $4 LIMIT $5
 		`
 		rows, err := db.Query(ctx, listSQL,
-			ownerId, req.IsMine, req.IsPublic, pattern, offset, size,
+			ownerId, req.IsPublic, pattern, offset, size,
 		)
 		if err != nil {
 			logger.Error("failed to list flashcard_sets", zap.Error(err))
