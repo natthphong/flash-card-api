@@ -579,3 +579,180 @@ func NewListExamHistory(db *pgxpool.Pool) ListExamHistoryFunc {
 	}
 
 }
+
+type InsertReviewLogsFunc func(
+	ctx context.Context,
+	logger *zap.Logger,
+	tx pgx.Tx,
+	userIdToken string,
+	items []ExamSubmitItem,
+) error
+
+func NewInsertReviewLogsFunc() InsertReviewLogsFunc {
+	return func(ctx context.Context, logger *zap.Logger, tx pgx.Tx, userIdToken string, items []ExamSubmitItem) error {
+		if len(items) == 0 {
+			return nil
+		}
+
+		cardIDs := make([]int64, 0, len(items))
+		sources := make([]string, 0, len(items))
+		grades := make([]int16, 0, len(items))
+		isCorrects := make([]string, 0, len(items))
+		answerDetails := make([][]byte, 0, len(items))
+		for _, it := range items {
+			cardIDs = append(cardIDs, it.CardID)
+			sources = append(sources, it.Source)
+			grades = append(grades, it.Grade)
+			isCorrects = append(isCorrects, it.IsCorrect)
+			answerDetails = append(answerDetails, []byte(it.AnswerDetail))
+		}
+
+		const sql = `
+			INSERT INTO tbl_review_log (
+				user_id_token,
+				card_id,
+				source,
+				grade,
+				is_correct,
+				answer_detail
+			)
+			SELECT
+				$1::varchar(36),
+				x.card_id,
+				x.source,
+				x.grade,
+				x.is_correct,
+				x.answer_detail::jsonb
+			FROM unnest(
+				$2::bigint[],
+				$3::text[],
+				$4::smallint[],
+				$5::text[],
+				$6::jsonb[]
+			) AS x(card_id, source, grade, is_correct, answer_detail);
+		`
+
+		_, err := tx.Exec(ctx, sql, userIdToken, cardIDs, sources, grades, isCorrects, answerDetails)
+		return err
+	}
+}
+
+type UpsertUserFlashcardSrsBatchFunc func(
+	ctx context.Context,
+	logger *zap.Logger,
+	tx pgx.Tx,
+	userIdToken string,
+	items []ExamSubmitItem,
+) error
+
+func NewUpsertUserFlashcardSrsBatchFunc() UpsertUserFlashcardSrsBatchFunc {
+	return func(ctx context.Context, logger *zap.Logger, tx pgx.Tx, userIdToken string, items []ExamSubmitItem) error {
+		if len(items) == 0 {
+			return nil
+		}
+
+		cardIDs := make([]int64, 0, len(items))
+		grades := make([]int16, 0, len(items))
+
+		for _, it := range items {
+			cardIDs = append(cardIDs, it.CardID)
+			grades = append(grades, it.Grade)
+		}
+
+		const sql = `
+		WITH input AS (
+		  SELECT
+			$1::varchar(36) AS user_id_token,
+			x.card_id::bigint AS card_id,
+			x.grade::smallint AS grade
+		  FROM unnest($2::bigint[], $3::smallint[]) AS x(card_id, grade)
+		),
+		upsert AS (
+		  INSERT INTO tbl_user_flashcard_srs(
+			user_id_token, card_id,
+			box, next_review_at, last_review_at,
+			streak, total_reviews, last_grade,
+			created_at, updated_at
+		  )
+		  SELECT
+			i.user_id_token,
+			i.card_id,
+			CASE
+			  WHEN i.grade <= 2 THEN 1
+			  WHEN i.grade = 3 THEN 1
+			  ELSE 2
+			END AS box,
+			CASE
+			  WHEN i.grade <= 2 THEN now() + make_interval(days => 1)
+			  WHEN i.grade = 3 THEN now() + make_interval(days => 1)
+			  ELSE now() + make_interval(days => 2)
+			END AS next_review_at,
+			now() AS last_review_at,
+			CASE
+			  WHEN i.grade <= 2 THEN 0
+			  ELSE 1
+			END AS streak,
+			1 AS total_reviews,
+			i.grade AS last_grade,
+			now() AS created_at,
+			now() AS updated_at
+		  FROM input i
+		  ON CONFLICT (user_id_token, card_id)
+		  DO UPDATE SET
+			box = (
+			  CASE
+				WHEN EXCLUDED.last_grade <= 2 THEN 1
+				WHEN EXCLUDED.last_grade = 3 THEN tbl_user_flashcard_srs.box
+				ELSE LEAST(tbl_user_flashcard_srs.box + 1, 5)
+			  END
+			),
+			streak = (
+			  CASE
+				WHEN EXCLUDED.last_grade <= 2 THEN 0
+				ELSE tbl_user_flashcard_srs.streak + 1
+			  END
+			),
+			next_review_at = (
+			  CASE
+				WHEN EXCLUDED.last_grade <= 2 THEN now() + make_interval(days => 1)
+				ELSE
+				  now() + make_interval(days =>
+					CASE
+					  WHEN (CASE
+						WHEN EXCLUDED.last_grade <= 2 THEN 1
+						WHEN EXCLUDED.last_grade = 3 THEN tbl_user_flashcard_srs.box
+						ELSE LEAST(tbl_user_flashcard_srs.box + 1, 5)
+					  END) = 1 THEN 1
+					  WHEN (CASE
+						WHEN EXCLUDED.last_grade <= 2 THEN 1
+						WHEN EXCLUDED.last_grade = 3 THEN tbl_user_flashcard_srs.box
+						ELSE LEAST(tbl_user_flashcard_srs.box + 1, 5)
+					  END) = 2 THEN 2
+					  WHEN (CASE
+						WHEN EXCLUDED.last_grade <= 2 THEN 1
+						WHEN EXCLUDED.last_grade = 3 THEN tbl_user_flashcard_srs.box
+						ELSE LEAST(tbl_user_flashcard_srs.box + 1, 5)
+					  END) = 3 THEN 4
+					  WHEN (CASE
+						WHEN EXCLUDED.last_grade <= 2 THEN 1
+						WHEN EXCLUDED.last_grade = 3 THEN tbl_user_flashcard_srs.box
+						ELSE LEAST(tbl_user_flashcard_srs.box + 1, 5)
+					  END) = 4 THEN 8
+					  ELSE 16
+					END
+				  )
+			  END
+			),
+			last_review_at = now(),
+			total_reviews = tbl_user_flashcard_srs.total_reviews + 1,
+			last_grade = EXCLUDED.last_grade,
+			updated_at = now()
+		  RETURNING 1
+		)
+		SELECT 1 FROM upsert;
+		`
+
+		_, err := tx.Exec(ctx, sql, userIdToken, cardIDs, grades)
+		return err
+	}
+}

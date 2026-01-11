@@ -28,8 +28,15 @@ func GetRouter(group fiber.Router,
 		NewGetExamSession(dbPool),
 	))
 
-	//TODO
 	examGroup.Put("/answer", NewUpdateExamHandler(
 		NewUpdateExamSession(dbPool),
+	))
+	examGroup.Put("/submit/:examId", NewSubmitHandler(
+		NewGetExamSession(dbPool),
+		NewSubMitReviewFunc(
+			dbPool,
+			NewInsertReviewLogsFunc(),
+			NewUpsertUserFlashcardSrsBatchFunc(),
+		),
 	))
 }

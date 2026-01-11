@@ -9,6 +9,13 @@ import (
 	"gitlab.com/home-server7795544/home-server/flash-card/flash-card-api/utils"
 )
 
+const (
+	ACTIVE    = "ACTIVE"
+	SUBMITTED = "SUBMITTED"
+	EXPIRED   = "EXPIRED"
+	CANCELLED = "CANCELLED"
+)
+
 type StartExamRequest struct {
 	SetId *decimal.Decimal `json:"sourceSetId,omitempty"`
 	Mode  string           `json:"mode"`
@@ -158,4 +165,12 @@ type ExamSessionListResponseDetails struct {
 	ExpiresAt      *time.Time `json:"expiresAt" db:"expires_at"`
 	SubmittedAt    *time.Time `json:"submittedAt" db:"submitted_at"`
 	CreatedAt      time.Time  `json:"createdAt" db:"create_at"`
+}
+
+type ExamSubmitItem struct {
+	CardID       int64
+	Source       string
+	IsCorrect    string
+	Grade        int16
+	AnswerDetail json.RawMessage
 }

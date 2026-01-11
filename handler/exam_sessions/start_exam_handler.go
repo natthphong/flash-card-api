@@ -49,6 +49,7 @@ func NewStartExamHandler(
 			//TODO
 		}
 
+		req.QuestionCount = decimal.NewFromInt(int64(len(questionIDs)))
 		// insert session
 		sessionId, err := insertSession(ctx, logger, userId, req, questionIDs)
 		if err != nil {
