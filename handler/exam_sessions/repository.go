@@ -2,9 +2,9 @@ package exam_sessions
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"math"
-	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -12,6 +12,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/shopspring/decimal"
 	"gitlab.com/home-server7795544/home-server/flash-card/flash-card-api/api"
+	"gitlab.com/home-server7795544/home-server/flash-card/flash-card-api/utils"
 	"go.uber.org/zap"
 )
 
@@ -26,11 +27,11 @@ func NewSelectQuestionIds(db *pgxpool.Pool) SelectQuestionIdsFunc {
 		if req.SetId != nil {
 			const sql = `
                 SELECT id
-                  FROM tbl_flashcards
-                 WHERE set_id    = $1
-                   AND is_deleted = 'N'
-                order by update_at, (seq % 2),id
-                limit $2
+				FROM tbl_flashcards
+				WHERE set_id = $1
+				  AND is_deleted = 'N'
+				ORDER BY random()
+				LIMIT $2;
             `
 			rows, err := db.Query(ctx, sql, req.SetId.IntPart(), req.QuestionCount.IntPart())
 			if err != nil {
@@ -111,8 +112,8 @@ func NewInsertStartExamSessions(db *pgxpool.Pool) InsertStartExamSessionsFunc {
 			}
 		}()
 		const sql = `
-			insert into tbl_exam_sessions (user_id_token, mode, source_set_id, plan_id, total_questions, time_limit_sec, status,started_at, expires_at)
-			values ($1,$2,$3,$4,$5,$6,$7,now(),$8)
+			insert into tbl_exam_sessions (user_id_token, mode, source_set_id, plan_id, total_questions, time_limit_sec, status,started_at, expires_at,score_max)
+			values ($1,$2,$3,$4,$5,$6,$7,now(),$8,$9)
 			RETURNING id;
 		`
 		var sessionId int64
@@ -125,6 +126,7 @@ func NewInsertStartExamSessions(db *pgxpool.Pool) InsertStartExamSessionsFunc {
 			req.TimeLimitSeconds,
 			"ACTIVE",
 			req.TimeLimit,
+			req.QuestionCount,
 		).Scan(&sessionId)
 		if err != nil {
 			logger.Error("insert exam session failed", zap.Error(err), zap.String("userIdToken", userIdToken))
@@ -271,87 +273,242 @@ func NewGetFlashCardDetailsFromIds(db *pgxpool.Pool) GetFlashCardDetailsFromIdsF
 	}
 }
 
-type GetExamSessionFunc func(ctx context.Context, logger *zap.Logger, examID int) (*ExamSessionDto, error)
+type GetExamSessionFunc func(ctx context.Context, logger *zap.Logger, examID int64) (*ExamSessionDto, error)
 
 func NewGetExamSession(db *pgxpool.Pool) GetExamSessionFunc {
-	return func(ctx context.Context, logger *zap.Logger, examID int) (*ExamSessionDto, error) {
-		const sql = `
-		SELECT
-			es.question_ids,
-			es.is_submitted,
-			es.score,
-			es.expires_at,
-			es.user_id,
-			u.username,
-			es.answers
-		FROM tbl_exam_sessions es
-		JOIN tbl_users u ON es.user_id = u.id
-		WHERE es.id = $1
-		  AND es.is_deleted = 'N'
-		`
+	return func(ctx context.Context, logger *zap.Logger, examID int64) (*ExamSessionDto, error) {
+		// 1) Load session header
+		const sqlSession = `
+			SELECT
+			  id,
+			  CASE 
+					WHEN expires_at IS NOT NULL AND expires_at < NOW() THEN 'EXPIRED'
+			ELSE status END  as current_status,
+			  mode,
+			  total_questions,
+			  score_total,
+			  score_max,
+			  expires_at,
+			  submitted_at,
+			  create_at
+			FROM tbl_exam_sessions
+			WHERE id = $1;
+			`
 
-		row := db.QueryRow(ctx, sql, examID)
-		var s ExamSessionDto
-		if err := row.Scan(
-			&s.QuestionIDs,
-			&s.IsSubmitted,
-			&s.Score,
-			&s.ExpiresAt,
-			&s.OwnerID,
-			&s.OwnerName,
-			&s.Answers,
-		); err != nil {
+		var dto ExamSessionDto
+		err := db.QueryRow(ctx, sqlSession, examID).Scan(
+			&dto.ID,
+			&dto.Status,
+			&dto.Mode,
+			&dto.TotalQuestions,
+			&dto.ScoreTotal,
+			&dto.ScoreMax,
+			&dto.ExpiresAt,
+			&dto.SubmittedAt,
+			&dto.CreatedAt,
+		)
+		if err != nil {
 			if errors.Is(err, pgx.ErrNoRows) {
 				return nil, errors.New("exam session not found")
 			}
-			logger.Error("scan exam session failed", zap.Error(err))
+			logger.Error("scan exam session header failed", zap.Error(err), zap.Int64("examID", examID))
 			return nil, errors.New(api.SomeThingWentWrong)
 		}
-		return &s, nil
+
+		// 2) Load questions + answers
+		const sqlQA = `
+			SELECT
+			   txq.id as question_id,
+			   txq.seq,
+			   txq.card_id,
+			   txq.question_type,
+			   txq.front_snapshot,
+			   txq.back_snapshot,
+			   txq.choices_snapshot,
+			   txq.prompt_tts_cache_id,
+			   txq.score_max,
+			
+			   txa.id as answer_id,
+			   txa.selected_choice,
+			   txa.typed_text,
+			   txa.audio_url,
+			   txa.recognized_text,
+			   txa.pronunciation_score,
+			   txa.is_correct,
+			   txa.score_awarded,
+			   txa.answered_at,
+			   txa.detail
+			FROM tbl_exam_questions txq
+			LEFT JOIN tbl_exam_answers txa
+			  ON txq.id = txa.question_id
+			 AND txq.session_id = txa.session_id
+			WHERE txq.session_id = $1
+			ORDER BY txq.seq ASC;
+		`
+
+		rows, err := db.Query(ctx, sqlQA, examID)
+		if err != nil {
+			logger.Error("query exam questions failed", zap.Error(err), zap.Int64("examID", examID))
+			return nil, errors.New(api.SomeThingWentWrong)
+		}
+		defer rows.Close()
+		dto.Questions = make([]ExamQuestionDto, 0, dto.TotalQuestions)
+		for rows.Next() {
+			var q ExamQuestionDto
+
+			var promptTtsCacheId *int64
+			var choices []string
+
+			// Answer nullable fields
+			var ansId *int64
+			var selectedChoice *string
+			var typedText *string
+			var audioURL *string
+			var recognizedText *string
+			var pronunciationScore *int
+			var isCorrect *string
+			var scoreAwarded *int
+			var answeredAt *time.Time
+			var detail *json.RawMessage
+
+			if err := rows.Scan(
+				&q.QuestionID,
+				&q.Seq,
+				&q.CardID,
+				&q.QuestionType,
+				&q.FrontSnapshot,
+				&q.BackSnapshot,
+				&choices,
+				&promptTtsCacheId,
+				&q.ScoreMax,
+
+				&ansId,
+				&selectedChoice,
+				&typedText,
+				&audioURL,
+				&recognizedText,
+				&pronunciationScore,
+				&isCorrect,
+				&scoreAwarded,
+				&answeredAt,
+				&detail,
+			); err != nil {
+				logger.Error("scan exam question row failed", zap.Error(err), zap.Int64("examID", examID))
+				return nil, errors.New(api.SomeThingWentWrong)
+			}
+
+			q.ChoicesSnapshot = choices
+			q.PromptTtsCacheId = promptTtsCacheId
+
+			if ansId != nil {
+				a := &ExamAnswerDto{
+					AnswerID:           *ansId,
+					SelectedChoice:     selectedChoice,
+					TypedText:          typedText,
+					AudioURL:           audioURL,
+					RecognizedText:     recognizedText,
+					PronunciationScore: pronunciationScore,
+					IsCorrect:          isCorrect,
+					ScoreAwarded:       scoreAwarded,
+					AnsweredAt:         answeredAt,
+				}
+				if detail != nil {
+					a.Detail = *detail
+				}
+				q.Answer = a
+			}
+
+			dto.Questions = append(dto.Questions, q)
+		}
+
+		if rows.Err() != nil {
+			logger.Error("iterate exam question rows failed", zap.Error(rows.Err()), zap.Int64("examID", examID))
+			return nil, errors.New(api.SomeThingWentWrong)
+		}
+
+		return &dto, nil
 	}
 }
 
-type UpdateExamSessionFunc func(ctx context.Context, logger *zap.Logger, req ExamSessionUpdateRequest) error
+type UpdateExamSessionFunc func(ctx context.Context, logger *zap.Logger, req ExamSessionUpdateRequest) (string, error)
 
 func NewUpdateExamSession(db *pgxpool.Pool) UpdateExamSessionFunc {
-	return func(ctx context.Context, logger *zap.Logger, req ExamSessionUpdateRequest) error {
-		var (
-			setClauses []string
-			args       []interface{}
-			idx        = 1
-		)
-		if req.Answers != nil {
-			setClauses = append(setClauses, fmt.Sprintf("answers      = $%d", idx))
-			args = append(args, req.ToJson())
-			idx++
+	return func(ctx context.Context, logger *zap.Logger, req ExamSessionUpdateRequest) (string, error) {
+		// begin transaction
+		var isCorrect bool
+		var questionId int64
+		score := 0
+		correct := utils.FlagN
+		tx, err := db.Begin(ctx)
+		if err != nil {
+			logger.Error("failed to begin tx", zap.Error(err))
+			return correct, errors.New(api.SomeThingWentWrong)
 		}
-		if req.IsSubmitted != nil {
-			setClauses = append(setClauses, fmt.Sprintf("is_submitted = $%d", idx))
-			args = append(args, *req.IsSubmitted)
-			idx++
+		defer func() {
+			if err != nil {
+				if rbErr := tx.Rollback(ctx); rbErr != nil {
+					logger.Error("tx rollback failed", zap.Error(rbErr))
+				}
+			} else if cmErr := tx.Commit(ctx); cmErr != nil {
+				logger.Error("tx commit failed", zap.Error(cmErr))
+				err = errors.New(api.SomeThingWentWrong)
+			}
+		}()
+		choiceIndex := utils.GetIndexFromString(req.Choice)
+		sqlQuestion :=
+			`
+			SELECT
+				  id,
+				  (
+					$1 BETWEEN 1 AND array_length(choices_snapshot, 1)
+					AND choices_snapshot[$1] = back_snapshot
+				  ) AS correct
+				FROM tbl_exam_questions
+				WHERE session_id = $2
+				  AND seq = $3;
+			`
+		err = tx.QueryRow(ctx, sqlQuestion, choiceIndex, req.SessionId, req.SeqId).Scan(
+			&questionId, &isCorrect)
+		if err != nil {
+			logger.Error("failed to update exam question row", zap.Error(err))
+			return correct, errors.New(api.SomeThingWentWrong)
 		}
-		if req.Score != nil {
-			setClauses = append(setClauses, fmt.Sprintf("score        = $%d", idx))
-			args = append(args, *req.Score)
-			idx++
-		}
-		setClauses = append(setClauses, fmt.Sprintf("update_by    = $%d", idx))
-		args = append(args, req.Username)
-		idx++
-		setClauses = append(setClauses, "update_at    = now()")
 
-		sql := fmt.Sprintf(`
-            UPDATE tbl_exam_sessions
-               SET %s
-             WHERE id = $%d
-        `, strings.Join(setClauses, ",\n                 "), idx)
-		args = append(args, req.Id.IntPart())
-
-		if _, err := db.Exec(ctx, sql, args...); err != nil {
-			logger.Error("failed to update exam session", zap.Error(err))
-			return errors.New(api.SomeThingWentWrong)
+		if isCorrect {
+			score = 1
+			correct = utils.FlagY
 		}
-		return nil
+
+		sqlInsertAnswer :=
+			`
+			INSERT INTO tbl_exam_answers (
+				  session_id,
+				  question_id,
+				  user_id_token,
+				  selected_choice,
+				  typed_text,
+				  is_correct,
+				  score_awarded,
+				  answered_at
+				)
+				VALUES (
+				  $1, $2, $3, $4, $5, $6, $7, now()
+				)
+				ON CONFLICT (session_id, question_id)
+				DO UPDATE SET
+				  selected_choice = EXCLUDED.selected_choice,
+				  typed_text      = EXCLUDED.typed_text,
+				  is_correct      = EXCLUDED.is_correct,
+				  score_awarded   = EXCLUDED.score_awarded,
+				  answered_at     = now();
+
+        `
+		_, err = tx.Exec(ctx, sqlInsertAnswer, req.SessionId, questionId, req.UserIdToken, req.Choice, req.AnswerType, correct, score)
+		if err != nil {
+			logger.Error("failed to update exam answer row", zap.Error(err))
+			return correct, errors.New(api.SomeThingWentWrong)
+		}
+		return correct, nil
 	}
 }
 

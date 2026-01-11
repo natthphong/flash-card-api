@@ -24,14 +24,12 @@ func GetRouter(group fiber.Router,
 		NewGetFlashCardDetailsFromIds(dbPool),
 	))
 
-	//TODO
 	examGroup.Get("/:examId", NewInquiryExamHandler(
 		NewGetExamSession(dbPool),
-		NewGetFlashCardDetailsFromIds(dbPool),
 	))
-	examGroup.Put("/update", NewUpdateExamHandler(
-		NewGetExamSession(dbPool),
-		NewGetFlashCardDetailsFromIds(dbPool),
+
+	//TODO
+	examGroup.Put("/answer", NewUpdateExamHandler(
 		NewUpdateExamSession(dbPool),
 	))
 }

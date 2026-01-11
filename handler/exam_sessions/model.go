@@ -3,7 +3,6 @@ package exam_sessions
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/shopspring/decimal"
@@ -49,13 +48,44 @@ type StartExamResponse struct {
 	ExpireAt    *time.Time         `json:"expireAt"`
 }
 type ExamSessionDto struct {
-	QuestionIDs []int64
-	IsSubmitted string
-	Score       *int
-	ExpiresAt   *time.Time
-	OwnerID     int
-	OwnerName   string
-	Answers     *json.RawMessage
+	ID             int64      `json:"id"`
+	Status         string     `json:"status"` // ACTIVE|SUBMITTED|EXPIRED|CANCELLED
+	Mode           string     `json:"mode"`
+	TotalQuestions int        `json:"totalQuestions"`
+	ScoreTotal     int        `json:"scoreTotal"`
+	ScoreMax       int        `json:"scoreMax"`
+	ExpiresAt      *time.Time `json:"expiresAt,omitempty"`
+	SubmittedAt    *time.Time `json:"submittedAt,omitempty"`
+	CreatedAt      time.Time  `json:"createdAt"`
+
+	Questions []ExamQuestionDto `json:"questions"`
+}
+
+type ExamQuestionDto struct {
+	QuestionID       int64    `json:"questionId"`
+	Seq              int      `json:"seq"`
+	CardID           int64    `json:"cardId"`
+	QuestionType     string   `json:"questionType"`
+	FrontSnapshot    string   `json:"frontSnapshot"`
+	BackSnapshot     string   `json:"backSnapshot"`
+	ChoicesSnapshot  []string `json:"choicesSnapshot,omitempty"`
+	PromptTtsCacheId *int64   `json:"promptTtsCacheId,omitempty"`
+	ScoreMax         int      `json:"scoreMax"`
+
+	Answer *ExamAnswerDto `json:"answer,omitempty"`
+}
+
+type ExamAnswerDto struct {
+	AnswerID           int64           `json:"answerId"`
+	SelectedChoice     *string         `json:"selectedChoice,omitempty"`
+	TypedText          *string         `json:"typedText,omitempty"`
+	AudioURL           *string         `json:"audioUrl,omitempty"`
+	RecognizedText     *string         `json:"recognizedText,omitempty"`
+	PronunciationScore *int            `json:"pronunciationScore,omitempty"`
+	IsCorrect          *string         `json:"isCorrect,omitempty"`    // Y|N
+	ScoreAwarded       *int            `json:"scoreAwarded,omitempty"` // 0..scoreMax
+	AnsweredAt         *time.Time      `json:"answeredAt,omitempty"`
+	Detail             json.RawMessage `json:"detail,omitempty"` // jsonb
 }
 
 type InquiryExamResponse struct {
@@ -81,28 +111,24 @@ type AnswersDetail struct {
 }
 
 type ExamSessionUpdateRequest struct {
-	Id          decimal.Decimal `json:"id"`
-	Answers     *AnswersDetail  `json:"answers,omitempty"`
-	IsSubmitted *string         `json:"isSubmitted,omitempty"`
-	Username    string
-	Score       *int `json:"score,omitempty"`
+	SessionId   decimal.Decimal `json:"sessionId"`
+	SeqId       decimal.Decimal `json:"seqId"`
+	AnswerType  string          `json:"answerType"`
+	Choice      string          `json:"choice"`
+	UserIdToken string
 }
 
 func (r ExamSessionUpdateRequest) Validate() error {
-	if r.Id.IsZero() {
-		return errors.New("id is required")
+	if utils.GetIndexFromString(r.Choice) == 0 {
+		return errors.New("choice must start with a letter")
 	}
-	if r.IsSubmitted != nil && *r.IsSubmitted != utils.FlagY && *r.IsSubmitted != utils.FlagN {
-		return fmt.Errorf("IsSubmitted must be one of [%v, %v]", utils.FlagY, utils.FlagN)
+	if r.SessionId.IsZero() {
+		return errors.New("sessionId must be provided")
+	}
+	if r.SeqId.IsZero() {
+		return errors.New("seqId must be provided")
 	}
 	return nil
-}
-func (r ExamSessionUpdateRequest) ToJson() string {
-	if r.Answers != nil {
-		jsonBytes, _ := json.Marshal(r.Answers)
-		return string(jsonBytes)
-	}
-	return "{}"
 }
 
 type ExamSessionListRequest struct {

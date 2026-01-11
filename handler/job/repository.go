@@ -82,7 +82,7 @@ func NewInsertDailyPlansFunc(db *pgxpool.Pool) InsertDailyPlansFunc {
 				c.id AS card_id,
 				row_number() OVER (
 				  PARTITION BY cfg.user_id_token
-				  ORDER BY c.seq ASC, c.id ASC
+				  ORDER BY random() , c.seq ASC, c.id ASC
 				) AS rn
 			  FROM cfg
 			  JOIN tbl_flashcards c
