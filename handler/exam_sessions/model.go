@@ -16,7 +16,7 @@ type StartExamRequest struct {
 	DailyPlanId      *decimal.Decimal `json:"planId,omitempty"`
 	QuestionCount    decimal.Decimal  `json:"totalQuestions"`
 	TimeLimitSeconds *int64           `json:"timeLimitSec,omitempty"`
-	TimeLimit        time.Time
+	TimeLimit        *time.Time
 	UserId           string
 }
 
@@ -150,12 +150,12 @@ type ExamSessionListResponseDetails struct {
 	UserIDToken    string     `json:"userIdToken" db:"user_id_token"`
 	PlanID         *string    `json:"planId" db:"plan_id"`
 	TotalQuestions int        `json:"totalQuestions" db:"total_questions"`
-	TimeLimitSec   int        `json:"timeLimitSec" db:"time_limit_sec"`
+	TimeLimitSec   *int       `json:"timeLimitSec" db:"time_limit_sec"`
 	Status         string     `json:"status" db:"status"`
 	ScoreTotal     float64    `json:"scoreTotal" db:"score_total"`
 	ScoreMax       int        `json:"scoreMax" db:"score_max"`
 	StartedAt      time.Time  `json:"startedAt" db:"started_at"`
-	ExpiresAt      time.Time  `json:"expiresAt" db:"expires_at"`
+	ExpiresAt      *time.Time `json:"expiresAt" db:"expires_at"`
 	SubmittedAt    *time.Time `json:"submittedAt" db:"submitted_at"`
 	CreatedAt      time.Time  `json:"createdAt" db:"create_at"`
 }

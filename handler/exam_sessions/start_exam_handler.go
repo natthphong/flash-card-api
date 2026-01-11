@@ -33,7 +33,8 @@ func NewStartExamHandler(
 			return api.BadRequest(c, err.Error())
 		}
 		if req.TimeLimitSeconds != nil && *req.TimeLimitSeconds > 0 {
-			req.TimeLimit = time.Now().Add(time.Duration(*req.TimeLimitSeconds) * time.Second)
+			t := time.Now().Add(time.Duration(*req.TimeLimitSeconds) * time.Second)
+			req.TimeLimit = &t
 		}
 		req.UserId = utils.GetUserID(c)
 		userId := utils.GetUserIDToken(c)
@@ -65,7 +66,7 @@ func NewStartExamHandler(
 			Id:          decimal.NewFromInt(sessionId),
 			Questions:   questions,
 			IsSubmitted: "N",
-			ExpireAt:    &req.TimeLimit,
+			ExpireAt:    req.TimeLimit,
 		}
 		return api.Ok(c, resp)
 	}
