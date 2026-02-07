@@ -7,11 +7,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"mime"
 	"mime/multipart"
 	"net/http"
 	"net/textproto"
 	"net/url"
 	"path"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -172,9 +174,81 @@ func (a *Adapter) buildURL(pth string, query map[string]string) (string, error) 
 }
 
 func (a *Adapter) buildBody(opt *RequestOptions) (io.Reader, string, error) {
-	// If caller supplies raw body, use it
+	if opt == nil {
+		return nil, "", nil
+	}
+
+	// Raw body
 	if opt.Body != nil {
-		return opt.Body, opt.ContentType, nil
+		return opt.Body, strings.TrimSpace(opt.ContentType), nil
+	}
+
+	if opt.Form != nil {
+		var buf bytes.Buffer
+		w := multipart.NewWriter(&buf)
+
+		// fields
+		for k, v := range opt.Form.Fields {
+			if strings.TrimSpace(k) == "" {
+				continue
+			}
+			if err := w.WriteField(k, v); err != nil {
+				_ = w.Close()
+				return nil, "", fmt.Errorf("write field %q: %w", k, err)
+			}
+		}
+
+		// files
+		for i, f := range opt.Form.Files {
+			if strings.TrimSpace(f.FieldName) == "" {
+				_ = w.Close()
+				return nil, "", fmt.Errorf("form file[%d]: FieldName is required", i)
+			}
+			if strings.TrimSpace(f.FileName) == "" {
+				_ = w.Close()
+				return nil, "", fmt.Errorf("form file[%d]: FileName is required", i)
+			}
+			if f.Reader == nil {
+				_ = w.Close()
+				return nil, "", fmt.Errorf("form file[%d]: Reader is required", i)
+			}
+
+			ct := strings.TrimSpace(f.ContentType)
+			if ct == "" {
+				ext := strings.ToLower(filepath.Ext(f.FileName))
+				ct = mime.TypeByExtension(ext)
+				if ct == "" {
+					ct = "application/octet-stream"
+				}
+			}
+
+			// always create part with explicit content-type (ชัวร์สุด)
+			h := make(textproto.MIMEHeader)
+			h.Set("Content-Disposition",
+				fmt.Sprintf(`form-data; name="%s"; filename="%s"`,
+					escapeQuotes(f.FieldName),
+					escapeQuotes(f.FileName),
+				),
+			)
+			h.Set("Content-Type", ct)
+
+			fw, err := w.CreatePart(h)
+			if err != nil {
+				_ = w.Close()
+				return nil, "", fmt.Errorf("create part file[%d]: %w", i, err)
+			}
+
+			if _, err := io.Copy(fw, f.Reader); err != nil {
+				_ = w.Close()
+				return nil, "", fmt.Errorf("copy file[%d]: %w", i, err)
+			}
+		}
+
+		if err := w.Close(); err != nil {
+			return nil, "", fmt.Errorf("close multipart writer: %w", err)
+		}
+
+		return bytes.NewReader(buf.Bytes()), w.FormDataContentType(), nil
 	}
 
 	// JSON
@@ -186,55 +260,6 @@ func (a *Adapter) buildBody(opt *RequestOptions) (io.Reader, string, error) {
 		return bytes.NewReader(b), "application/json", nil
 	}
 
-	// multipart form-data
-	if opt.Form != nil {
-		var buf bytes.Buffer
-		w := multipart.NewWriter(&buf)
-
-		// fields
-		for k, v := range opt.Form.Fields {
-			_ = w.WriteField(k, v)
-		}
-
-		// files
-		for _, f := range opt.Form.Files {
-			if f.FieldName == "" || f.FileName == "" || f.Reader == nil {
-				continue
-			}
-
-			var fw io.Writer
-			if f.ContentType != "" {
-				h := make(textproto.MIMEHeader)
-				h.Set("Content-Disposition", fmt.Sprintf(`form-data; name="%s"; filename="%s"`, escapeQuotes(f.FieldName), escapeQuotes(f.FileName)))
-				h.Set("Content-Type", f.ContentType)
-				var err error
-				fw, err = w.CreatePart(h)
-				if err != nil {
-					_ = w.Close()
-					return nil, "", err
-				}
-			} else {
-				var err error
-				fw, err = w.CreateFormFile(f.FieldName, f.FileName)
-				if err != nil {
-					_ = w.Close()
-					return nil, "", err
-				}
-			}
-
-			if _, err := io.Copy(fw, f.Reader); err != nil {
-				_ = w.Close()
-				return nil, "", err
-			}
-		}
-
-		if err := w.Close(); err != nil {
-			return nil, "", err
-		}
-		return bytes.NewReader(buf.Bytes()), w.FormDataContentType(), nil
-	}
-
-	// no body
 	return nil, "", nil
 }
 

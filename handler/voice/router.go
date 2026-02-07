@@ -17,4 +17,6 @@ func GetRouter(
 		NewUpdateHitCacheAndReturnAudio(dbPool),
 		NewInsertAudioUrlAndKeyToCacheFunc(dbPool),
 	))
+	voiceGroup.Post("/pronunciation/score", NewPronunciationScoreHandler(homeProxy))
+
 }

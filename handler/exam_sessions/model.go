@@ -153,7 +153,7 @@ type ExamSessionListResponse struct {
 type ExamSessionListResponseDetails struct {
 	ID             string     `json:"id" db:"id"`
 	Mode           string     `json:"mode" db:"mode"`
-	SourceSetID    string     `json:"sourceSetId" db:"source_set_id"`
+	SourceSetID    *string    `json:"sourceSetId" db:"source_set_id"`
 	UserIDToken    string     `json:"userIdToken" db:"user_id_token"`
 	PlanID         *string    `json:"planId" db:"plan_id"`
 	TotalQuestions int        `json:"totalQuestions" db:"total_questions"`

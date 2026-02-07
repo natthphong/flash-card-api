@@ -13,6 +13,7 @@ const (
 	SomeThingWentWrong = "Something went wrong"
 	NotFound           = "Not Found"
 	TtsPath            = "/v1/ai/tts"
+	SttPath            = "/v1/ai/stt"
 )
 
 type Response struct {

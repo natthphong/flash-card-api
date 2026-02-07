@@ -17,3 +17,12 @@ type TtsResponseBodyFromHomeProxy struct {
 	Key string `json:"key"`
 	Url string `json:"url"`
 }
+
+type SttResponse struct {
+	Code    string             `json:"code"`
+	Message string             `json:"message"`
+	Body    SttResponseDetails `json:"body"`
+}
+type SttResponseDetails struct {
+	Text string `json:"text"`
+}
