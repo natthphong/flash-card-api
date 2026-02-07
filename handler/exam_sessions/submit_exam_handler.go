@@ -44,6 +44,7 @@ func NewSubmitHandler(
 		}
 		examItems := []ExamSubmitItem{}
 		// TODO want new logic for cal grade
+		totalScore := 0
 		for _, item := range sessionDto.Questions {
 			if item.Answer == nil || item.Answer.IsCorrect == nil {
 				return api.BadRequest(c, "this all questions must have answer")
@@ -51,6 +52,7 @@ func NewSubmitHandler(
 			isCorrect := *item.Answer.IsCorrect
 			grade := 0
 			if isCorrect == utils.FlagY {
+				totalScore++
 				grade = 4
 			}
 			examItems = append(examItems, ExamSubmitItem{
@@ -62,24 +64,27 @@ func NewSubmitHandler(
 			})
 		}
 		userIdToken := utils.GetUserIDToken(c)
-		err = examSubMitReviewFunc(ctx, logger, userIdToken, examItems)
+		err = examSubMitReviewFunc(ctx, logger, userIdToken, examItems, sessionDto.ID, totalScore)
 		if err != nil {
 			logger.Error(err.Error())
 			return api.InternalError(c, err.Error())
 		}
 
-		return api.Ok(c, nil)
+		return api.Ok(c, fiber.Map{
+			"score": totalScore,
+		})
 	}
 }
 
-type ExamSubMitReviewFunc func(ctx context.Context, logger *zap.Logger, userIdToken string, items []ExamSubmitItem) error
+type ExamSubMitReviewFunc func(ctx context.Context, logger *zap.Logger, userIdToken string, items []ExamSubmitItem, examSessionId int64, totalScore int) error
 
 func NewSubMitReviewFunc(
 	db *pgxpool.Pool,
 	insertReviewLogFunc InsertReviewLogsFunc,
 	insertAndMergeUserFlashCardSrsFunc UpsertUserFlashcardSrsBatchFunc,
+	updateExamSessionAfterSubmitFunc UpdateExamSessionAfterSubmitFunc,
 ) ExamSubMitReviewFunc {
-	return func(ctx context.Context, logger *zap.Logger, userIdToken string, items []ExamSubmitItem) error {
+	return func(ctx context.Context, logger *zap.Logger, userIdToken string, items []ExamSubmitItem, examSessionId int64, totalScore int) error {
 		tx, err := db.Begin(ctx)
 		if err != nil {
 			logger.Error("failed to begin tx", zap.Error(err))
@@ -95,6 +100,7 @@ func NewSubMitReviewFunc(
 				err = errors.New(api.SomeThingWentWrong)
 			}
 		}()
+
 		err = insertReviewLogFunc(ctx, logger, tx, userIdToken, items)
 		if err != nil {
 			logger.Error("tx commit failed", zap.Error(err))
@@ -105,7 +111,11 @@ func NewSubMitReviewFunc(
 			logger.Error("tx commit failed", zap.Error(err))
 			err = errors.New(api.SomeThingWentWrong)
 		}
-
+		err = updateExamSessionAfterSubmitFunc(ctx, logger, tx, examSessionId, totalScore)
+		if err != nil {
+			logger.Error("tx commit failed", zap.Error(err))
+			err = errors.New(api.SomeThingWentWrong)
+		}
 		return nil
 	}
 }

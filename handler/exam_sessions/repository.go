@@ -637,6 +637,24 @@ func NewInsertReviewLogsFunc() InsertReviewLogsFunc {
 	}
 }
 
+type UpdateExamSessionAfterSubmitFunc func(
+	ctx context.Context,
+	logger *zap.Logger,
+	tx pgx.Tx,
+	sessionId int64,
+	score int,
+) error
+
+func NewUpdateExamSessionAfterSubmit() UpdateExamSessionAfterSubmitFunc {
+	return func(ctx context.Context, logger *zap.Logger, tx pgx.Tx, sessionId int64, score int) error {
+		sql := `
+			update tbl_exam_sessions set submitted_at = now(), score_total = $2 where id = $1 
+		`
+		_, err := tx.Exec(ctx, sql, sessionId, score)
+		return err
+	}
+}
+
 type UpsertUserFlashcardSrsBatchFunc func(
 	ctx context.Context,
 	logger *zap.Logger,

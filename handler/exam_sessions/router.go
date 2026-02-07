@@ -37,6 +37,7 @@ func GetRouter(group fiber.Router,
 			dbPool,
 			NewInsertReviewLogsFunc(),
 			NewUpsertUserFlashcardSrsBatchFunc(),
+			NewUpdateExamSessionAfterSubmit(),
 		),
 	))
 }
