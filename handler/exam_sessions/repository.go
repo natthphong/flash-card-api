@@ -537,6 +537,7 @@ func NewListExamHistory(db *pgxpool.Pool) ListExamHistoryFunc {
 			select id,mode,source_set_id,
 			       plan_id, total_questions, time_limit_sec,
 			       CASE 
+			        WHEN submitted_at is not null then 'COMPLETED'
 					WHEN expires_at IS NOT NULL AND expires_at < NOW() THEN 'EXPIRED'
 					ELSE status END  as current_status,
 			    started_at, expires_at, submitted_at, score_total, score_max, create_at from tbl_exam_sessions
